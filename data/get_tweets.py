@@ -57,6 +57,7 @@ def get_texts(fpath_in, bearer_token):
 def write_out(data, fpath_out):
 	with open(fpath_out, 'w', newline='') as f:
 		writer = csv.writer(f, delimiter=',')
+		writer.writerow(["text", "sarcasm_label"])
 		writer.writerows(data)
 
 
