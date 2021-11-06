@@ -87,7 +87,6 @@ def main():
 
 	data_test,  errors_test   = get_texts(in_data_test_fpath,  bearer_token)
 	data_train, errors_train  = get_texts(in_data_train_fpath, bearer_token)
-	print(data_train[219])
 	data_test  = clean_data(data_test)
 	data_train = clean_data(data_train)
 	write_out(data_test,  out_data_test_fpath)
