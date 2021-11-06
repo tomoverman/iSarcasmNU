@@ -8,4 +8,5 @@ dependencies:
     - pytorch=1.10
     - matplotlib>=3.3
     - ipykernel
+    - requests
     - nltk

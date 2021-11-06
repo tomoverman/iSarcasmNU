@@ -13,11 +13,12 @@ out_data_train_fpath = "data_train.csv"
 def is_sarcastic(s):
 	return int(s == "sarcastic")
 
+
 def clean_text(text):
 	"""Given string TEXT, remove all words starting with 'http' and replace @* with @USER"""
 	words = text.split()
 	words = [w for w in words if w[0:4] != 'http']
-	words = [w[0] + 'USER' if w[0] == '@' and len(w) > 1 else w for w in words]
+	words = [w[0] + 'user' if w[0] == '@' and len(w) > 1 else w for w in words]
 	return " ".join(words)
 
 
@@ -66,8 +67,10 @@ def get_texts(fpath_in, bearer_token):
 
 def clean_data(data):
 	"""Given data with rows [text, label] clean the text entries using the 
-	helper function clean_text, defined above. Does not mutate given list data."""
-	return [[clean_text(row[0]), row[1]] for row in data]
+	helper function clean_text, defined above, followed be removal of any 
+	zero-length strings. Does not mutate given list data."""
+	cleaned = [[clean_text(row[0]), row[1]] for row in data]
+	return [row for row in cleaned if len(row[0]) > 0]
 
 
 def write_out(data, fpath_out):
@@ -84,6 +87,7 @@ def main():
 
 	data_test,  errors_test   = get_texts(in_data_test_fpath,  bearer_token)
 	data_train, errors_train  = get_texts(in_data_train_fpath, bearer_token)
+	print(data_train[219])
 	data_test  = clean_data(data_test)
 	data_train = clean_data(data_train)
 	write_out(data_test,  out_data_test_fpath)
