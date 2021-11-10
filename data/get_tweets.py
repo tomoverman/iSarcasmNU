@@ -14,14 +14,6 @@ def is_sarcastic(s):
 	return int(s == "sarcastic")
 
 
-def clean_text(text):
-	"""Given string TEXT, remove all words starting with 'http' and replace @* with @USER"""
-	words = text.split()
-	words = [w for w in words if w[0:4] != 'http']
-	words = [w[0] + 'user' if w[0] == '@' and len(w) > 1 else w for w in words]
-	return " ".join(words)
-
-
 def get_texts(fpath_in, bearer_token):
 	"""Given path to isarcasm csv file, containing rows of form [id, sarcasm_label, sarcasm_category],
 	and user's bearer token, return a 2d array DATA containing entries [text, label] where text is the
@@ -65,14 +57,6 @@ def get_texts(fpath_in, bearer_token):
 	return data, errors
 
 
-def clean_data(data):
-	"""Given data with rows [text, label] clean the text entries using the 
-	helper function clean_text, defined above, followed be removal of any 
-	zero-length strings. Does not mutate given list data."""
-	cleaned = [[clean_text(row[0]), row[1]] for row in data]
-	return [row for row in cleaned if len(row[0]) > 0]
-
-
 def write_out(data, fpath_out):
 	"""Write [text, sarcasm_label] rows to a csv file given by fpath_out"""
 	with open(fpath_out, 'w', newline='') as f:
@@ -85,12 +69,11 @@ def main():
 	with open(token_fpath, 'r') as f:
 		bearer_token = f.read()
 
-	data_test,  errors_test   = get_texts(in_data_test_fpath,  bearer_token)
 	data_train, errors_train  = get_texts(in_data_train_fpath, bearer_token)
-	data_test  = clean_data(data_test)
-	data_train = clean_data(data_train)
-	write_out(data_test,  out_data_test_fpath)
+	data_test,  errors_test   = get_texts(in_data_test_fpath,  bearer_token)
+	
 	write_out(data_train, out_data_train_fpath)
+	write_out(data_test,  out_data_test_fpath)
 
 
 main()
