@@ -185,7 +185,7 @@ class Preprocessor:
 
 		Returns padded data.
 		"""
-		return [tk_text + [self.PAD_TOKEN for _ in range(length - len(tk_text))] for tk_text in tk_data]
+		return [[self.PAD_TOKEN for _ in range(length - len(tk_text))] + tk_text for tk_text in tk_data]
 
 	def process(self, data, convert_to_idxs=True):
 		"""
