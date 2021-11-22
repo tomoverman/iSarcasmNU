@@ -45,8 +45,8 @@ def prepare_sequence(seq, to_ix):
 #     c+=1
 
 #use the preprocessing functions
-train_fpath = "data/data_train.csv"
-test_fpath  = "data/data_test.csv"
+train_fpath = "data/ptacek_data_train.csv"
+test_fpath  = "data/ptacek_data_test.csv"
 
 seq_len = 40
 min_len = 5
@@ -62,11 +62,14 @@ Y_test  = [prep.labels_test[i] for i in kept_idxs]
 
 X_train=np.array(X_train)
 Y_train=np.array(Y_train)
+X_test=np.array(X_test)
+Y_test=np.array(Y_test)
 
 
 #create the torch dataloaders
 train_data = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(Y_train))
-batch_size = 200
+test_data = TensorDataset(torch.from_numpy(X_test), torch.from_numpy(Y_test))
+batch_size = 500
 train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 
 
@@ -76,12 +79,12 @@ HIDDEN_DIM = 100
 
 model = LSTMSarcasm(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary))
 loss_function = nn.BCELoss()
-optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
+optimizer = optim.RMSprop(model.parameters(), lr=0.0001, weight_decay=10**-8)
 
 #gradient clipping stuff to prevent exploding gradient
-clip=5
-print(model(train_data[0:30][0].type(torch.LongTensor)))
-for epoch in range(30):
+# clip=5
+
+for epoch in range(100):
     for inputs, labels in train_loader:
         # zero the grads
         model.zero_grad()
@@ -95,9 +98,43 @@ for epoch in range(30):
         loss.backward()
 
         # prevent exploding gradients
-        nn.utils.clip_grad_norm_(model.parameters(), clip)
+        # nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()
     print(loss.item())
 
-print(model(train_data[0:30][0].type(torch.LongTensor)))
-print(train_data[0:30][1])
+
+#find training and testing accuracies
+train_predictions = torch.round(model(train_data[:][0].type(torch.LongTensor))).detach().numpy()
+train_accuracy = np.sum(train_predictions==Y_train)/Y_train.shape[0]
+print("Train Accuracy: " + str(train_accuracy))
+
+test_predictions = torch.round(model(test_data[:][0].type(torch.LongTensor))).detach().numpy()
+test_accuracy = np.sum(test_predictions==Y_test)/Y_test.shape[0]
+print("Test Accuracy: " + str(test_accuracy))
+
+
+#find precision, recall, and F-score for testing and training datasets
+
+#find train precision
+#precision is (true positives) / ( (true positives) + (false positives))
+#positives in this case is that the tweet has sarcasm
+true_positives = np.sum(Y_train[train_predictions == Y_train]==1)
+false_positives = np.sum(Y_train[train_predictions==1]==0)
+print("Precision: " + str(true_positives/(true_positives + false_positives)))
+
+#find train recall
+#recall is (true positives) / ( (true positives) + (false negatives))
+false_negatives = np.sum(Y_train[train_predictions==0]==1)
+print("Recall: " + str(true_positives/(true_positives + false_negatives)))
+
+#find test precision
+#precision is (true positives) / ( (true positives) + (false positives))
+#positives in this case is that the tweet has sarcasm
+true_positives = np.sum(Y_test[test_predictions == Y_test]==1)
+false_positives = np.sum(Y_test[test_predictions==1]==0)
+print("Precision: " + str(true_positives/(true_positives + false_positives)))
+
+#find test recall
+#recall is (true positives) / ( (true positives) + (false negatives))
+false_negatives = np.sum(Y_test[test_predictions==0]==1)
+print("Recall: " + str(true_positives/(true_positives + false_negatives)))
