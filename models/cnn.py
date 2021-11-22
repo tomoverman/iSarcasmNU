@@ -17,25 +17,24 @@ class CNN(nn.Module):
 		self.vocab_size  = params['vocab_size']
 		self.seq_len	 = params['seq_len']
 
-		# Embedding layer definition  # BCEcrossentropy l2 regularizer in rnsprop
+		# Embedding layer definition
 		self.embedding = nn.Embedding(self.vocab_size, self.embed_size, padding_idx=0)
 
-		# Convolution
-		self.conv = nn.Conv1d(self.seq_len, self.num_filters, self.filter_size)
-
-		# Max Pool
-		self.pool = nn.MaxPool1d(self.filter_size, 1)
+		# Convolution, Activation, Maxpooling layer
+		self.layer1 = nn.Sequential(
+			nn.Conv1d(self.seq_len, self.num_filters, self.filter_size, padding=1),
+			nn.ReLU(),
+			nn.MaxPool1d(kernel_size=2, stride=2))
 
 		# Linear feed forward
-		self.linear = nn.Linear(self.num_filters, self.embed_size)
+		self.fc = nn.Linear(self.embed_size // 2 * self.num_filters, 1)
 
 	def forward(self, x):
-		r1 = self.embedding(x)
-		r1 = torch.transpose(r1, 2, 1)
-
-		conv_out = self.conv(r1)
-
-		return self.linear(conv_out)
+		out = self.embedding(x)
+		out = self.layer1(out)
+		out = out.reshape(out.size(0), -1)
+		out = self.fc(out)
+		return out.squeeze()
 
 
 

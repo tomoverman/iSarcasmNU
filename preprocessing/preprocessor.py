@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import nltk
 from nltk.tokenize import TweetTokenizer
+from torch.utils.data import Dataset
 
 
 ##########################
@@ -203,11 +204,33 @@ class Preprocessor:
 		else:
 			return tk_data, kept_idxs
 
+	def get_dataset_train(self):
+		return TokenizedDataset(self.x_train, self.y_train)
+
+	def get_dataset_test(self):
+		return TokenizedDataset(self.x_test, self.y_test)
+
+
+#####################
+##  Dataset Class  ##
+#####################
+
+class TokenizedDataset(Dataset):
+
+	def __init__(self, x, y):
+		self.x = np.array(x)
+		self.y = np.array(y)
+
+	def __len__(self):
+		return len(self.y)
+
+	def __getitem__(self, idx):
+		return self.x[idx], self.y[idx]
+
 
 ########################
 ##  Helper Functions  ##
 ########################
-
 
 def remove_urls(lst):
 	"""
