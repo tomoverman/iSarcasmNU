@@ -1,6 +1,7 @@
 import numpy as np
 import requests
 import csv
+import time
 
 token_fpath = "token.txt"  # Path to file containing authorization bearer token
 
@@ -9,6 +10,11 @@ in_data_train_fpath  = "isarcasm_train.csv"
 out_data_test_fpath  = "data_test.csv"
 out_data_train_fpath = "data_train.csv"
 
+#below is to get the data for the ptacket dataset
+# in_data_test_fpath   = "ptacek_test.csv"
+# in_data_train_fpath  = "ptacek_train.csv"
+# out_data_test_fpath  = "ptacek_data_test.csv"
+# out_data_train_fpath = "ptacek_data_train.csv"
 
 def is_sarcastic(s):
 	return int(s == "sarcastic")
@@ -41,7 +47,11 @@ def get_texts(fpath_in, bearer_token):
 	stride = 100
 	data = []
 	errors = []
+	# rate_limit_delay=900
 	for start_idx in range(0, n, stride):
+		#below is to get around twitter api rate limits
+		# if start_idx%(200*stride)==0:
+		# 	time.sleep(rate_limit_delay)
 		# Get group of ids
 		ids = tweet_ids[start_idx:min(start_idx + stride, n)]
 		# Seperate ids in a comma separated string
