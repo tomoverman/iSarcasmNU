@@ -5,9 +5,11 @@ from models.cnn import CNN
 
 DATA_PATH = "~/Documents/Projects/iSarcasmNU/data"  # data location
 
+# to run one test:  python -m unittest tests.TestGRU
+# to run all tests: python -m unittest tests
+
 
 class TestCNN(unittest.TestCase):
-
 	def test_1(self):
 		train_fpath = f"{DATA_PATH}/data_train.csv"
 		test_fpath  = f"{DATA_PATH}/data_test.csv"
@@ -26,7 +28,3 @@ class TestCNN(unittest.TestCase):
 
 		assert len(x_train[0]) == 40
 		assert len(x_train[-1]) == 40
-
-	
-if __name__ == '__main__':
-	unittest.main()
