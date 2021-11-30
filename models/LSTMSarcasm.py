@@ -13,10 +13,11 @@ class LSTMSarcasm(nn.Module):
 
         #form the layers of the network
         self.word_embed = nn.Embedding(vocab_size, embed_dim)
-        self.lstm = nn.LSTM(input_size=embed_dim, hidden_size=hidden_dim)
+        self.lstm = nn.LSTM(input_size=embed_dim, hidden_size=hidden_dim, batch_first=True)
         #predictions are either sarcasm or not, so two labels
         self.outlayer = nn.Linear(hidden_dim, 1)
         self.sig = nn.Sigmoid()
+
 
     def forward(self,tweet):
 
@@ -25,10 +26,24 @@ class LSTMSarcasm(nn.Module):
         #embed the tweet
         embed = self.word_embed(tweet)
         #lstm layer
-        lstm_out, _ = self.lstm(embed)
-        lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
+        # lstm_out, _ = self.lstm(embed)
+        #
+        # lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
+        #
+        # #output connected layer
+        # outlayer = self.outlayer(lstm_out)
+        # #softmax
+        # out = self.sig(outlayer)
+        #
+        # out = out.view(batch_size, -1)
+        # out = out[:,-1]
+
+        lstm_out, (final,final_cell) = self.lstm(embed)
+
+        # lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
+
         #output connected layer
-        outlayer = self.outlayer(lstm_out)
+        outlayer = self.outlayer(final)
         #softmax
         out = self.sig(outlayer)
 

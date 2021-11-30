@@ -48,6 +48,9 @@ def prepare_sequence(seq, to_ix):
 train_fpath = "data/ptacek_data_train.csv"
 test_fpath  = "data/ptacek_data_test.csv"
 
+# train_fpath = "data/data_train.csv"
+# test_fpath  = "data/data_test.csv"
+
 seq_len = 40
 min_len = 5
 
@@ -69,7 +72,7 @@ Y_test=np.array(Y_test)
 #create the torch dataloaders
 train_data = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(Y_train))
 test_data = TensorDataset(torch.from_numpy(X_test), torch.from_numpy(Y_test))
-batch_size = 500
+batch_size = 32
 train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 
 
@@ -79,12 +82,12 @@ HIDDEN_DIM = 100
 
 model = LSTMSarcasm(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary))
 loss_function = nn.BCELoss()
-optimizer = optim.RMSprop(model.parameters(), lr=0.0001, weight_decay=10**-8)
+optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
 
 #gradient clipping stuff to prevent exploding gradient
-# clip=5
+clip=5
 
-for epoch in range(100):
+for epoch in range(30):
     for inputs, labels in train_loader:
         # zero the grads
         model.zero_grad()
@@ -95,10 +98,11 @@ for epoch in range(100):
 
         # loss and backprop
         loss = loss_function(output.squeeze(), labels.float())
+        optimizer.zero_grad()
         loss.backward()
 
         # prevent exploding gradients
-        # nn.utils.clip_grad_norm_(model.parameters(), clip)
+        nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()
     print(loss.item())
 
@@ -120,21 +124,21 @@ print("Test Accuracy: " + str(test_accuracy))
 #positives in this case is that the tweet has sarcasm
 true_positives = np.sum(Y_train[train_predictions == Y_train]==1)
 false_positives = np.sum(Y_train[train_predictions==1]==0)
-print("Precision: " + str(true_positives/(true_positives + false_positives)))
+print("Training Precision: " + str(true_positives/(true_positives + false_positives)))
 
 #find train recall
 #recall is (true positives) / ( (true positives) + (false negatives))
 false_negatives = np.sum(Y_train[train_predictions==0]==1)
-print("Recall: " + str(true_positives/(true_positives + false_negatives)))
+print("Training Recall: " + str(true_positives/(true_positives + false_negatives)))
 
 #find test precision
 #precision is (true positives) / ( (true positives) + (false positives))
 #positives in this case is that the tweet has sarcasm
 true_positives = np.sum(Y_test[test_predictions == Y_test]==1)
 false_positives = np.sum(Y_test[test_predictions==1]==0)
-print("Precision: " + str(true_positives/(true_positives + false_positives)))
+print("Testing Precision: " + str(true_positives/(true_positives + false_positives)))
 
 #find test recall
 #recall is (true positives) / ( (true positives) + (false negatives))
 false_negatives = np.sum(Y_test[test_predictions==0]==1)
-print("Recall: " + str(true_positives/(true_positives + false_negatives)))
+print("Testing Recall: " + str(true_positives/(true_positives + false_negatives)))
