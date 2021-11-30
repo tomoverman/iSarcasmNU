@@ -1,10 +1,12 @@
 
+import argparse
 from preprocessing.preprocessor import Preprocessor
-from models.cnn import CNN
+from models.cnn import CNN, CNNLayered
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+
 
 
 # Location of training and testing data
@@ -29,30 +31,34 @@ def get_true_positives(y_pred, y_true):
 	return torch.logical_and(y_pred == y_true, y_pred == 1).sum().int()
 
 
-def main():
-		
+def run_cnn(model):
+
 	# Preprocess data
 	seq_len = 40
 	min_len = 5
 	prep = Preprocessor(seq_len=seq_len, min_len=min_len)
 	prep.load_data(data_train_fpath, data_test_fpath)
 	prep.initialize()
-	
-	x_train = torch.Tensor(prep.x_train).int()
-	y_train = torch.Tensor(prep.y_train)
-	x_test  = torch.Tensor(prep.x_test).int()
-	y_test  = torch.Tensor(prep.y_test)
+	vocab_size  = prep.V
 
-	# Parameters for CNN
-	params = {}
-	params['num_filters'] = 100
-	params['filter_size'] = 3
-	params['embed_size'] = 100
-	params['vocab_size'] = prep.V
-	params['seq_len']	= seq_len
+	if model == "cnn":
+		# Parameters for CNN
+		num_filters = 100
+		filter_size = 3
+		embed_size  = 100
+		
+		# Construct the CNN
+		cnn = CNN(num_filters, filter_size, embed_size, vocab_size, seq_len)
 
-	# Construct the CNN
-	cnn = CNN(params)
+	elif model == "cnn3":
+		# Parameters for 3CNN
+		filter_counts 	= [100, 100, 100]
+		filter_sizes 	= [3, 4, 5]
+		embed_size  	= 100
+
+		# Construct the CNN
+		cnn = CNNLayered(filter_counts, filter_sizes, embed_size, vocab_size, seq_len)
+
 
 	################
 	##  Training  ##
@@ -76,7 +82,7 @@ def main():
 	
 	train_losses = []
 	test_losses  = []
-	acc_list	 = []
+	accuracies	 = []
 	
 	cnn.train()
 
@@ -94,7 +100,7 @@ def main():
 			accuracy = get_accuracy(pred_labels, labels)
 
 			train_losses.append(loss.item())
-			acc_list.append(accuracy)
+			accuracies.append(accuracy)
 
 			# Optimization step
 			optimizer.zero_grad()
@@ -134,4 +140,9 @@ def main():
 	print(f"Test Accuracy: {accuracy}")
 
 
-main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='CNN and CNN3 Training and Testing')
+    parser.add_argument("model", type=str, choices=["cnn", "cnn3"])
+    args = parser.parse_args()
+
+    run_cnn(args.model)
