@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from models.LSTMSarcasm import LSTMSarcasm
+from models.SIARN import SIARN
 import csv
 from preprocessing.preprocessor import Preprocessor
 
@@ -80,14 +80,14 @@ EMBEDDING_DIM = 100
 HIDDEN_DIM = 100
 
 
-model = LSTMSarcasm(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary))
+model = SIARN(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary),seq_len)
 loss_function = nn.BCELoss()
 optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
 
 #gradient clipping stuff to prevent exploding gradient
 clip=5
 
-for epoch in range(30):
+for epoch in range(2):
     for inputs, labels in train_loader:
         # zero the grads
         model.zero_grad()
