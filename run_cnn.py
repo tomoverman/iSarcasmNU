@@ -17,7 +17,7 @@ data_test_fpath  = f"{data_path}/ptacek_data_test.csv"
 
 
 def convert_output_to_label(cnn_output):
-    return torch.round(torch.sigmoid(cnn_output)).int()
+    return torch.round(cnn_output).int()
 
 def get_accuracy(y_pred, y_true):
     return (y_pred == y_true).sum().float() / y_true.shape[0]
@@ -74,7 +74,8 @@ def run_cnn(model):
     optimizer = optim.RMSprop(cnn.parameters(), lr=learning_rate, weight_decay=reg_l2)
 
     # Loss function
-    criterion = nn.BCEWithLogitsLoss()
+    # criterion = nn.BCEWithLogitsLoss()
+    criterion = nn.BCELoss()
     
     # Load datasets
     train_loader = DataLoader(dataset=prep.get_dataset_train(), batch_size=batch_size, shuffle=True)
