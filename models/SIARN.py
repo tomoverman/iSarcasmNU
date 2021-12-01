@@ -22,17 +22,28 @@ class SIARN(nn.Module):
         self.Wa = nn.Parameter(torch.zeros(2*embed_dim))
         self.ba = nn.Parameter(torch.zeros(1))
 
+        self.idxs = torch.cartesian_prod(torch.tensor(range(0, seq_len)), torch.tensor(range(0, seq_len)))
+
 
     def intra_attention(self,embed):
         # VECTORIZE THIS
-        s=torch.zeros(embed.shape[0],self.seq_len,self.seq_len)
+        # s=torch.zeros(embed.shape[0],self.seq_len,self.seq_len)
+        # for i in range(0,self.seq_len):
+        #     for j in range(0,self.seq_len):
+        #         concat = torch.cat((embed[:,i,:],embed[:,j,:]),1)
+        #         # keep i=j at 0 because the intra-word attention should not represent the same word
+        #         if not i==j:
+        #             s[:,i,j] = torch.matmul(concat,self.Wa) + self.ba
+        # return s
+
+        pair_concats = torch.cat([embed[:,self.idxs,:]], dim=1).view(embed.shape[0], -1, 2*embed.shape[2])
+        s1 = torch.matmul(pair_concats,self.Wa)
+        s1 = s1.view(embed.shape[0],self.seq_len,self.seq_len)
+        # keep i=j at 0 because the intra-word attention should not represent the same word
         for i in range(0,self.seq_len):
-            for j in range(0,self.seq_len):
-                concat = torch.cat((embed[:,i,:],embed[:,j,:]),1)
-                # keep i=j at 0 because the intra-word attention should not represent the same word
-                if not i==j:
-                    s[:,i,j] = torch.matmul(concat,self.Wa) + self.ba
-        return s
+            s1[:,i,i]=0.
+        # print(torch.allclose(s,s1,atol=10**-3))
+        return s1
 
     def forward(self,tweet):
         batch_size = tweet.size(0)
