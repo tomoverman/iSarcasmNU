@@ -35,7 +35,7 @@ def get_true_positives(y_pred, y_true):
     return torch.logical_and(y_pred == y_true, y_pred == 1).sum().int()
 
 
-def run(model_name, batch_size):
+def run(model_name, batch_size, num_epochs):
 
     seq_len = 40
     min_len = 5
@@ -76,19 +76,18 @@ def run(model_name, batch_size):
         pass
 
 
+    #######################
+    ##  Hyperparameters  ##
+    #######################
 
-    ################
-    ##  Training  ##
-    ################
-
-    # Hyperparameters
     if batch_size < 0:
         batch_size = 512
-    num_epochs = 2
+    if num_epochs < 0:
+        num_epochs = 2
     learning_rate = 0.001
     reg_l2 = 1e-8
 
-    clip = 5
+    clip = 5  # to prevent exploding gradients
 
     # Optimizer
     optimizer = optim.RMSprop(model.parameters(), lr=learning_rate, weight_decay=reg_l2)
@@ -99,7 +98,11 @@ def run(model_name, batch_size):
     # Load datasets
     train_loader = DataLoader(dataset=prep.get_dataset_train(), batch_size=batch_size, shuffle=True)
     test_loader  = DataLoader(dataset=prep.get_dataset_test(),  batch_size=batch_size, shuffle=False)
-    test_dataset = prep.get_dataset_test()
+
+
+    ################
+    ##  Training  ##
+    ################
     
     train_losses = []
     test_losses  = []
@@ -109,27 +112,21 @@ def run(model_name, batch_size):
     for epoch in range(1, num_epochs + 1):
         for i, (xs, labels) in enumerate(train_loader):
 
-            tr_loss = 0
-
             # Perform forward pass
             outputs = model(xs)
             pred_labels = convert_output_to_label(outputs)
 
-            # Compute loss and accuracy
+            # Compute and store loss and accuracy
             loss = criterion(outputs, labels.float())
             accuracy = get_accuracy(pred_labels, labels)
-
             train_losses.append(loss.item())
             accuracies.append(accuracy)
 
-            # Loss and backprop
+            # Backprop
             optimizer.zero_grad()
             loss.backward()
-
-            # Prevent exploding gradients
             nn.utils.clip_grad_norm_(model.parameters(), clip)
             optimizer.step()
-
 
         print(f'Epoch [{epoch}/{num_epochs}], Loss: {loss:.4f}, Accuracy: {accuracy:.2f}')
 
@@ -154,6 +151,7 @@ def run(model_name, batch_size):
             false_positives += get_false_positives(pred_labels, labels)
             true_positives  += get_true_positives(pred_labels, labels)
 
+    # Calculate precision, recall, and accuracy
     precision = true_positives / (true_positives + false_positives)
     recall = true_positives / (true_positives + false_negatives)
     accuracy = correct / total
@@ -167,6 +165,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Model Training and Testing')
     parser.add_argument("model", type=str, choices=["cnn", "3cnn", "lstm", "lstm_att", "siarn"])
     parser.add_argument("--batch_size", type=int, default=-1)
+    parser.add_argument("--num_epochs", type=int, default=-1)
     args = parser.parse_args()
 
-    run(args.model, args.batch_size)
+    run(args.model, args.batch_size, args.num_epochs)
