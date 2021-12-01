@@ -87,7 +87,7 @@ optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
 #gradient clipping stuff to prevent exploding gradient
 clip=5
 
-for epoch in range(5):
+for epoch in range(30):
     for inputs, labels in train_loader:
         # zero the grads
         model.zero_grad()
