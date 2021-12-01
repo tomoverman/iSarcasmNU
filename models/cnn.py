@@ -43,16 +43,18 @@ class CNN(nn.Module):
 			nn.ReLU(),
 			nn.MaxPool1d(kernel_size=self.filter_size, stride=stride))
 
-		# Linear feed forward
+		# Linear feed forward followed by softmax activation
 		out_size_conv = get_output_size(self.embed_size, self.padding, self.dilation, self.filter_size, self.stride)
 		out_size_pool = get_output_size(out_size_conv, self.padding, self.dilation, self.filter_size, self.stride)
 		self.fc = nn.Linear(out_size_pool * self.filter_count, 1)
+		self.act = nn.Sigmoid()
 
 	def forward(self, x):
 		out = self.embedding(x)
 		out = self.layer1(out)
 		out = out.reshape(out.size(0), -1)
 		out = self.fc(out)
+		out = self.act(out)
 		return out.squeeze()
 
 
@@ -97,9 +99,10 @@ class CNNLayered(nn.Module):
 				nn.MaxPool1d(kernel_size=size, stride=stride))
 			)
 
-		# Linear feed forward
+		# Linear feed forward followed by softmax activation
 		out_size = sum([s * c for s, c in zip(out_sizes, self.filter_counts)])
 		self.fc = nn.Linear(out_size, 1)
+		self.act = nn.Sigmoid()
 
 	def forward(self, x):
 		out = self.embedding(x)
@@ -111,6 +114,7 @@ class CNNLayered(nn.Module):
 		out = torch.cat(layer_outs, 2)
 		out = out.reshape(out.size(0), -1)
 		out = self.fc(out)
+		out = self.act(out)
 		return out.squeeze()
 
 
