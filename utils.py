@@ -22,20 +22,21 @@ MODELS = {
 
 
 def select_model(model_name, embed_size, vocab_size, seq_len, load_path=""):
-    """Given the name of the desired model, and an optional path to a pretrained model, construct
-    and return the model, loading its parameters from the .pth file if specified."""
+    """
+    Given the name of the desired model, and an optional path to a pretrained model, construct
+    and return the model, loading its parameters from the .pth file if specified.
+    """
 
-    # Get parameters for the model
     if model_name == "cnn":
         # Parameters for CNN
+        filter_count = 100
         filter_size = 3
-        num_filters = 100
-        params = [num_filters, filter_size, embed_size, vocab_size, seq_len]
+        params = [filter_count, filter_size, embed_size, vocab_size, seq_len]
 
     elif model_name == "3cnn":
         # Parameters for 3CNN
-        filter_sizes    = [3, 4, 5]
         filter_counts   = [100, 100, 100]
+        filter_sizes    = [3, 4, 5]
         params = [filter_counts, filter_sizes, embed_size, vocab_size, seq_len]
 
     elif model_name == "lstm":
@@ -71,6 +72,13 @@ def select_model(model_name, embed_size, vocab_size, seq_len, load_path=""):
 
 
 def train(model, num_epochs, train_loader, optimizer, loss_function, clip):
+    """
+    Train the given model over a number of epochs, using the data in train_loader.
+    Uses the specified optimizer and los function. Clip gives the amount to clip
+    the gradient to avoid exploding gradients.
+    Returns two lists: the training losses and the accuracies at each iteration.
+    """
+
     train_losses = []
     accuracies   = []
     
@@ -94,12 +102,21 @@ def train(model, num_epochs, train_loader, optimizer, loss_function, clip):
             nn.utils.clip_grad_norm_(model.parameters(), clip)
             optimizer.step()
 
+        # Computes accuracy only once at the end of each epoch
+        # pred_labels = convert_output_to_label(outputs)
+        # accuracy = get_accuracy(pred_labels, labels)
+        # train_losses.append(loss.item())
+        # accuracies.append(accuracy)
         print(f'Epoch [{epoch}/{num_epochs}], Loss: {loss:.4f}, Accuracy: {accuracy:.2f}')
 
     return train_losses, accuracies
 
 
 def test(model, test_loader):
+    """
+    Test the given model on the test data in test_loader.
+    Returns the precision, recall, accuracy, and F-score.
+    """
     model.eval()
     with torch.no_grad():
         correct = 0
@@ -130,7 +147,12 @@ def test(model, test_loader):
     return precision, recall, accuracy, fscore
 
 
-def plot_training_data(model_name, losses, accuracies, outdir, data_path=None):
+def plot_training_data(model_name, losses, accuracies, outdir, data_path=""):
+    """
+    Plots the results of training a model. Given lists LOSSES and ACCURACIES, 
+    or a path to a file containing this data. Saves the figure in the directory
+    specified by OUTDIR.
+    """
     
     if data_path: 
         xs, losses, accuracies = np.genfromtxt(data_path).T
@@ -170,8 +192,8 @@ def save_testing_results(model_name, precision, recall, accuracy, fscore, outdir
 ##  Helper functions  ##
 ########################
 
-def convert_output_to_label(cnn_output):
-    return torch.round(cnn_output).int()
+def convert_output_to_label(output):
+    return torch.round(output).int()
 
 def get_accuracy(y_pred, y_true):
     return (y_pred == y_true).sum().float() / y_true.shape[0]
