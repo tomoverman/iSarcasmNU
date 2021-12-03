@@ -3,7 +3,6 @@ import pandas as pd
 import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 def get_output_size(in_size, padding, dilation, kernel_size, stride):
@@ -13,14 +12,13 @@ def get_output_size(in_size, padding, dilation, kernel_size, stride):
 
 class CNN(nn.Module):
 
-	def __init__(self, filter_count, filter_size, embed_size, vocab_size, seq_len, stride=1):
+	def __init__(self, filter_count, filter_size, embed_size, vocab_size, seq_len):
 		"""
 		:param filter_count: int - output size for convolution+maxpool layer
 		:param filter_size: int - kernel size for convolution
 		:param embed_size: int - size of the embedding layer
 		:param vocab_size: int - size of the vocabulary set
 		:param seq_len: int - length of the input token sequence
-		:param stride: int - stride for convolution+maxpool layer. Defaults to 1.
 		"""
 
 		super(CNN, self).__init__()
@@ -30,7 +28,8 @@ class CNN(nn.Module):
 		self.embed_size   = embed_size
 		self.vocab_size   = vocab_size
 		self.seq_len	  = seq_len
-		self.stride 	  = stride
+		
+		self.stride 	  = 1
 		self.padding  	  = 0
 		self.dilation     = 1
 
@@ -41,7 +40,7 @@ class CNN(nn.Module):
 		self.layer1 = nn.Sequential(
 			nn.Conv1d(self.seq_len, self.filter_count, self.filter_size, padding=self.padding),
 			nn.ReLU(),
-			nn.MaxPool1d(kernel_size=self.filter_size, stride=stride))
+			nn.MaxPool1d(kernel_size=self.filter_size, stride=self.stride))
 
 		# Linear feed forward followed by softmax activation
 		out_size_conv = get_output_size(self.embed_size, self.padding, self.dilation, self.filter_size, self.stride)
@@ -60,14 +59,13 @@ class CNN(nn.Module):
 
 class CNNLayered(nn.Module):
 
-	def __init__(self, filter_counts, filter_sizes, embed_size, vocab_size, seq_len, strides=None):
+	def __init__(self, filter_counts, filter_sizes, embed_size, vocab_size, seq_len):
 		"""
 		:param filter_counts: list of length num_filters - output size for each convolution+maxpool layer
 		:param filter_sizes: list of length num_filters - kernel size for each convolution
 		:param embed_size: int - size of the embedding layer
 		:param vocab_size: int - size of the vocabulary set
 		:param seq_len: int - length of the input token sequence
-		:param strides: list of length num_filters - stride for each convolution+maxpool layer. Defaults to all 1.
 		"""
 
 		super(CNNLayered, self).__init__()
@@ -78,7 +76,8 @@ class CNNLayered(nn.Module):
 		self.embed_size   	= embed_size
 		self.vocab_size   	= vocab_size
 		self.seq_len	  	= seq_len
-		self.strides 	  	= strides if strides else [1 for _ in range(self.num_filters)]
+		
+		self.strides 	  	= [1 for _ in range(self.num_filters)]
 		self.padding        = 0
 		self.dilation		= 1
 

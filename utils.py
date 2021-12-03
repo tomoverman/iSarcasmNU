@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 from models.cnn import CNN, CNNLayered
 from models.LSTMSarcasm import LSTMSarcasm
 from models.LSTM_Att import LSTM_Att
@@ -62,22 +63,28 @@ def select_model(model_name, embed_size, vocab_size, seq_len, load_path=""):
 
     # Construct the model
     model = MODELS[model_name](*params)
+    print(f"Constructed model {model_name.upper()}.")
     
     # If specified, load a pretrained model
     if load_path:
         model.load_state_dict(torch.load(load_path))
         model.eval()
+        print(f"Model loaded from {load_path}")
 
     return model
 
 
-def train(model, num_epochs, train_loader, optimizer, loss_function, clip):
+def train_model(model, num_epochs, train_loader, optimizer, loss_function, clip):
     """
     Train the given model over a number of epochs, using the data in train_loader.
     Uses the specified optimizer and los function. Clip gives the amount to clip
     the gradient to avoid exploding gradients.
     Returns two lists: the training losses and the accuracies at each iteration.
     """
+
+    print("Training model...")
+    time0 = time.time()
+    t0 = time0
 
     train_losses = []
     accuracies   = []
@@ -88,35 +95,41 @@ def train(model, num_epochs, train_loader, optimizer, loss_function, clip):
 
             # Perform forward pass
             outputs = model(xs)
-            pred_labels = convert_output_to_label(outputs)
 
-            # Compute and store loss and accuracy
+            # Compute loss and perform backprop
             loss = loss_function(outputs, labels.float())
-            accuracy = get_accuracy(pred_labels, labels)
-            train_losses.append(loss.item())
-            accuracies.append(accuracy)
-
-            # Backprop
             optimizer.zero_grad()
             loss.backward()
+
+            # Prevent exploding gradient
             nn.utils.clip_grad_norm_(model.parameters(), clip)
             optimizer.step()
 
-        # Computes accuracy only once at the end of each epoch
-        # pred_labels = convert_output_to_label(outputs)
-        # accuracy = get_accuracy(pred_labels, labels)
-        # train_losses.append(loss.item())
-        # accuracies.append(accuracy)
-        print(f'Epoch [{epoch}/{num_epochs}], Loss: {loss:.4f}, Accuracy: {accuracy:.2f}')
+        # Compute accuracy and save it as well as the training loss
+        pred_labels = convert_output_to_label(outputs)
+        accuracy = get_accuracy(pred_labels, labels)
+        train_losses.append(loss.item())
+        accuracies.append(accuracy)        
+        t1 = time.time()
+        time_elapsed = (t1 - t0)
+        t0 = t1
+
+        print(f'\tEpoch [{epoch}/{num_epochs}], Time: {time_elapsed:.2f} sec, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}')
+
+    time_elapsed = time.time() - time0
+    print(f"    Time Elapsed: {time_elapsed:.2f} sec")
 
     return train_losses, accuracies
 
 
-def test(model, test_loader):
+def test_model(model, test_loader):
     """
     Test the given model on the test data in test_loader.
     Returns the precision, recall, accuracy, and F-score.
     """
+    print("Testing model...")
+    time0 = time.time()
+
     model.eval()
     with torch.no_grad():
         correct = 0
@@ -133,59 +146,67 @@ def test(model, test_loader):
             false_positives += get_false_positives(pred_labels, labels)
             true_positives  += get_true_positives(pred_labels, labels)
 
+    time_elapsed = time.time() - time0
+    print(f"    Time Elapsed: {time_elapsed:.2f} sec")
+    
     # Calculate precision, recall, accuracy, and F-score
     precision = true_positives / (true_positives + false_positives)
     recall = true_positives / (true_positives + false_negatives)
     accuracy = correct / total
     fscore = 2. * (precision * recall) / (precision + recall)
 
-    print(f"Test Precision: {precision}")
-    print(f"Test Recall:    {recall}")
-    print(f"Test Accuracy:  {accuracy}")
-    print(f"Test F-score:   {fscore}")
+    print("    Testing Results:")
+    print(f"\tPrecision: {precision:.4f}")
+    print(f"\tRecall:    {recall:.4f}")
+    print(f"\tAccuracy:  {accuracy:.4f}")
+    print(f"\tF-score:   {fscore:.4f}")
 
     return precision, recall, accuracy, fscore
 
 
-def plot_training_data(model_name, losses, accuracies, outdir, data_path=""):
+def plot_loss_and_accuracy(model_name, losses, accuracies, outdir, data_path="", save_suffix=""):
     """
     Plots the results of training a model. Given lists LOSSES and ACCURACIES, 
     or a path to a file containing this data. Saves the figure in the directory
     specified by OUTDIR.
     """
     
-    if data_path: 
+    if data_path:
         xs, losses, accuracies = np.genfromtxt(data_path).T
+        print(f"Loading results located at {data_path}")
 
     fig, [ax1, ax2] = plt.subplots(2, 1)
     xs = range(len(losses))
     
     ax1.plot(xs, losses)
-    ax1.set_xlabel("iter")
+    ax1.set_xlabel("epoch")
     ax1.set_ylabel("loss")
-    ax1.set_title(f"{model_name} Training Loss")
+    ax1.set_title(f"{model_name.upper()} Training Loss")
     
     ax2.plot(xs, accuracies)
-    ax2.set_xlabel("iter")
+    ax2.set_xlabel("epoch")
     ax2.set_ylabel("accuracy")
-    ax2.set_title(f"{model_name} Training Accuracy")
+    ax2.set_title(f"{model_name.upper()} Training Accuracy")
 
     fig.tight_layout()
 
-    outpath = f"{outdir}/img_training_results_{model_name}.png"
-    plt.savefig(outpath)
+    fpath = f"{outdir}/training_results_{model_name}{save_suffix}.png"
+    plt.savefig(fpath)
+    print(f"Plots saved to {fpath}")
 
 
-def save_training_results(model_name, losses, accuracies, outdir):
-    np.savetxt(f"{outdir}/training_results_{model_name}.txt", 
-               np.array([range(len(losses)), losses, accuracies]).T,
-               header='iter, loss, accuracy')
+def save_training_results(model_name, losses, accuracies, outdir, save_suffix=""):
+    fpath = f"{outdir}/training_results_{model_name}{save_suffix}.txt"
+    np.savetxt(fpath, np.array([range(len(losses)), losses, accuracies]).T, 
+                      header='epoch, loss, accuracy')
+    print(f"Training results saved to {fpath}")
 
 
-def save_testing_results(model_name, precision, recall, accuracy, fscore, outdir):
-    np.savetxt(f"{outdir}/testing_results_{model_name}.txt", 
-               np.array([precision, recall, accuracy, fscore]),
-               header='precision, recall, accuracy, fscore')
+def save_testing_results(model_name, precision, recall, accuracy, fscore, outdir, save_suffix=""):
+    fpath = f"{outdir}/testing_results_{model_name}{save_suffix}.txt"
+    np.savetxt(fpath, np.array([precision, recall, accuracy, fscore]), 
+                      header='precision, recall, accuracy, fscore')
+    print(f"Testing results saved to {fpath}")
 
 
 ########################
