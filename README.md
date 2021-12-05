@@ -24,7 +24,7 @@ conda activate isarcasmenv
 Train an LSTM over 30 epochs with a batch size of 256.
 
 ```
-python main.py lstm train --save_model pretrained/example_lstm.pth --num_epochs 30 --batch_size 256
+python main.py lstm train --save_model <path_to_save.pth> --num_epochs 30 --batch_size 256
 ```
 
 Test a pretrained CNN.
