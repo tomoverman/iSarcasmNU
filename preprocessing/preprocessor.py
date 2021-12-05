@@ -3,6 +3,7 @@ import pandas as pd
 import nltk
 from nltk.tokenize import TweetTokenizer
 from torch.utils.data import Dataset
+import torch
 
 
 ##########################

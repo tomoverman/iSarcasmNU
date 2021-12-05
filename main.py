@@ -50,7 +50,7 @@ def main():
                         help="path to file containing training results")
     parser.add_argument("--suffix",       type=str,       default="",
                         help="suffix to append to saved filenames")
-    parser.add_argument("--cuda", type=str, default=0,
+    parser.add_argument("--cuda", type=int, default=0,
                         help="0 for cpu, 1 for gpu/cuda")
 
     args = parser.parse_args()
