@@ -50,6 +50,8 @@ def main():
                         help="path to file containing training results")
     parser.add_argument("--suffix",       type=str,       default="",
                         help="suffix to append to saved filenames")
+    parser.add_argument("--cuda", type=str, default=0,
+                        help="0 for cpu, 1 for gpu/cuda")
 
     args = parser.parse_args()
 
@@ -70,6 +72,10 @@ def main():
     outdir              = args.outdir if args.outdir else f"out/{model_name}"
     train_results_path  = args.training_results
     save_suffix         = "_" + args.suffix if args.suffix else args.suffix
+    cuda            = args.cuda
+
+    # Determine whether to use CUDA based on input arguments and if cuda device is available
+    use_gpu = (cuda and torch.cuda.is_available())
     
     # Preprocess data
     prep = Preprocessor(seq_len=seq_len, min_len=min_len)
@@ -79,7 +85,8 @@ def main():
 
     # Select model
     model = select_model(model_name, embed_size, vocab_size, seq_len, load_path)
-    
+    if use_gpu:
+        model.cuda()
     # Specify optimizer and loss function
     optimizer = optim.RMSprop(model.parameters(), lr=learning_rate, weight_decay=reg_l2)
     criterion = nn.BCELoss()
@@ -97,8 +104,8 @@ def main():
                 \n\tL2_regularization:  {reg_l2}")
 
         # Load data, then train and test the model
-        train_loader = DataLoader(dataset=prep.get_dataset_train(), batch_size=batch_size, shuffle=True)
-        test_loader  = DataLoader(dataset=prep.get_dataset_test(),  batch_size=batch_size, shuffle=False)
+        train_loader = DataLoader(dataset=prep.get_dataset_train(use_gpu), batch_size=batch_size, shuffle=True)
+        test_loader  = DataLoader(dataset=prep.get_dataset_test(use_gpu),  batch_size=batch_size, shuffle=False)
         train_losses, accuracies = train_model(model, num_epochs, train_loader, optimizer, criterion, clip)
         precision, recall, accuracy, fscore = test_model(model, test_loader)
 

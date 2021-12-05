@@ -204,11 +204,11 @@ class Preprocessor:
 		else:
 			return tk_data, kept_idxs
 
-	def get_dataset_train(self):
-		return TokenizedDataset(self.x_train, self.y_train)
+	def get_dataset_train(self,use_gpu):
+		return TokenizedDataset(self.x_train, self.y_train, use_gpu)
 
-	def get_dataset_test(self):
-		return TokenizedDataset(self.x_test, self.y_test)
+	def get_dataset_test(self,use_gpu):
+		return TokenizedDataset(self.x_test, self.y_test, use_gpu)
 
 
 #####################
@@ -217,9 +217,13 @@ class Preprocessor:
 
 class TokenizedDataset(Dataset):
 
-	def __init__(self, x, y):
-		self.x = np.array(x)
-		self.y = np.array(y)
+	def __init__(self, x, y, use_gpu):
+		if not use_gpu:
+			self.x = np.array(x)
+			self.y = np.array(y)
+		else:
+			self.x = torch.tensor(np.array(x)).to("cuda")
+			self.y = torch.tensor(np.array(y)).to("cuda")
 
 	def __len__(self):
 		return len(self.y)
