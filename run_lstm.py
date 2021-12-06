@@ -4,24 +4,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from models.MIARN import MIARN
+from models.lstm import LSTM
 import csv
 from preprocessing.preprocessor import Preprocessor
 
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
     return idxs
-def get_accuracy(y_pred, y_true):
-	return (y_pred == y_true).sum().float() / y_true.shape[0]
-
-def get_false_positives(y_pred, y_true):
-	return torch.logical_and(y_pred != y_true, y_pred == 1).sum().int()
-
-def get_false_negatives(y_pred, y_true):
-	return torch.logical_and(y_pred != y_true, y_pred == 0).sum().int()
-
-def get_true_positives(y_pred, y_true):
-	return torch.logical_and(y_pred == y_true, y_pred == 1).sum().int()
 
 # training_data=[]
 # with open('../data/data_train.csv', newline='') as csvfile:
@@ -58,6 +47,8 @@ def get_true_positives(y_pred, y_true):
 train_fpath = "data/ptacek_data_train.csv"
 test_fpath  = "data/ptacek_data_test.csv"
 
+use_cuda = True
+
 # train_fpath = "data/data_train.csv"
 # test_fpath  = "data/data_test.csv"
 
@@ -73,25 +64,37 @@ Y_train = [prep.labels_train[i] for i in kept_idxs]
 X_test, kept_idxs  = prep.process(prep.tweets_test,  convert_to_idxs=True)
 Y_test  = [prep.labels_test[i] for i in kept_idxs]
 
-X_train=np.array(X_train)
-Y_train=np.array(Y_train)
-X_test=np.array(X_test)
-Y_test=np.array(Y_test)
-
-
-#create the torch dataloaders
-train_data = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(Y_train))
-test_data = TensorDataset(torch.from_numpy(X_test), torch.from_numpy(Y_test))
-batch_size = 512
-train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
-test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size)
+if use_cuda and torch.cuda.is_available():
+    print("Using GPU.")
+    X_train=torch.tensor(np.array(X_train)).to("cuda")
+    Y_train=torch.tensor(np.array(Y_train)).to("cuda")
+    X_test=torch.tensor(np.array(X_test)).to("cuda")
+    Y_test=torch.tensor(np.array(Y_test)).to("cuda")
+    #create the torch dataloaders
+    train_data = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(Y_train))
+    test_data = TensorDataset(torch.from_numpy(X_test), torch.from_numpy(Y_test))
+    batch_size = 32
+    train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
+else:
+    print("Using CPU.")
+    X_train = np.array(X_train)
+    Y_train = np.array(Y_train)
+    X_test = np.array(X_test)
+    Y_test = np.array(Y_test)
+    # create the torch dataloaders
+    train_data = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(Y_train))
+    test_data = TensorDataset(torch.from_numpy(X_test), torch.from_numpy(Y_test))
+    batch_size = 32
+    train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 
 
 EMBEDDING_DIM = 100
 HIDDEN_DIM = 100
 
 
-model = MIARN(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary),seq_len)
+model = LSTM(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary))
+if use_cuda and torch.cuda.is_available():
+    model.cuda()
 loss_function = nn.BCELoss()
 optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
 
@@ -104,7 +107,10 @@ for epoch in range(30):
         model.zero_grad()
 
         # return output
-        inputs = inputs.type(torch.LongTensor)
+        if use_cuda and torch.cuda.is_available():
+            inputs = inputs.type(torch.cuda.LongTensor)
+        else:
+            inputs = inputs.type(torch.LongTensor)
         output = model(inputs)
 
         # loss and backprop
@@ -117,46 +123,13 @@ for epoch in range(30):
         optimizer.step()
     print(loss.item())
 
-###############
-##  Testing  ##
-###############
-
-model.eval()
-with torch.no_grad():
-    correct = 0
-    total = 0
-    false_positives = 0
-    false_negatives = 0
-    true_positives = 0
-    for xs, labels in test_loader:
-        outputs = model(xs)
-        pred_labels = torch.round(outputs).int()
-        total += len(labels)
-        correct += (pred_labels == labels).sum().int()
-        false_negatives += get_false_negatives(pred_labels, labels)
-        false_positives += get_false_positives(pred_labels, labels)
-        true_positives += get_true_positives(pred_labels, labels)
-
-precision = true_positives / (true_positives + false_positives)
-recall = true_positives / (true_positives + false_negatives)
-accuracy = correct / total
-
-print(f"Test Precision: {precision}")
-print(f"Test Recall: {recall}")
-print(f"Test Accuracy: {accuracy}")
-
 
 # #find training and testing accuracies
-# # split into two sets to prevent memory overload
-# train_predictions1 = torch.round(model(train_data[0:X_train.shape[0]//2][0].type(torch.LongTensor))).detach().numpy()
-# train_predictions2 = torch.round(model(train_data[X_train.shape[0]//2:][0].type(torch.LongTensor))).detach().numpy()
-# train_predictions = np.concatenate(train_predictions1, train_predictions2)
+# train_predictions = torch.round(model(train_data[:][0].type(torch.LongTensor))).detach().numpy()
 # train_accuracy = np.sum(train_predictions==Y_train)/Y_train.shape[0]
 # print("Train Accuracy: " + str(train_accuracy))
 #
-# test_predictions1 = torch.round(model(test_data[0:X_test.shape[0]//2][0].type(torch.LongTensor))).detach().numpy()
-# test_predictions2 = torch.round(model(test_data[X_test.shape[0]//2:][0].type(torch.LongTensor))).detach().numpy()
-# test_predictions = np.concatenate(test_predictions1, test_predictions2)
+# test_predictions = torch.round(model(test_data[:][0].type(torch.LongTensor))).detach().numpy()
 # test_accuracy = np.sum(test_predictions==Y_test)/Y_test.shape[0]
 # print("Test Accuracy: " + str(test_accuracy))
 #

@@ -2,10 +2,9 @@ import argparse
 import os
 import time
 from models.cnn import CNN, CNNLayered
-from models.LSTMSarcasm import LSTMSarcasm
-from models.LSTM_Att import LSTM_Att
-from models.SIARN import SIARN
-from models.MIARN import MIARN
+from models.lstm import LSTM, LSTMAtt
+from models.siarn import SIARN
+from models.miarn import MIARN
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -15,8 +14,8 @@ import torch.nn as nn
 MODELS = {
     "cnn": CNN,
     "3cnn": CNNLayered,
-    "lstm": LSTMSarcasm,
-    "lstm_att": LSTM_Att,
+    "lstm": LSTM,
+    "lstm_att": LSTMAtt,
     "siarn": SIARN,
     "miarn": MIARN
 }

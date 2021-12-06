@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from models.SIARN import SIARN
+from models.siarn import SIARN
 import csv
 from preprocessing.preprocessor import Preprocessor
 

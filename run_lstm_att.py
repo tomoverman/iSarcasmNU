@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from models.LSTM_Att import LSTM_Att
+from models.lstm import LSTMAtt
 import csv
 from preprocessing.preprocessor import Preprocessor
 
@@ -80,7 +80,7 @@ EMBEDDING_DIM = 100
 HIDDEN_DIM = 100
 
 
-model = LSTM_Att(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary),seq_len)
+model = LSTMAtt(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary),seq_len)
 loss_function = nn.BCELoss()
 optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
 

@@ -3,7 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+
 class SIARN(nn.Module):
+    
     def __init__(self, embed_dim, hidden_dim, vocab_size,seq_len):
         super(SIARN, self).__init__()
         #initialize some variables
@@ -23,7 +25,6 @@ class SIARN(nn.Module):
         self.ba = nn.Parameter(torch.zeros(1))
 
         self.idxs = torch.cartesian_prod(torch.tensor(range(0, seq_len)), torch.tensor(range(0, seq_len)))
-
 
     def intra_attention(self,embed):
         # VECTORIZE THIS
