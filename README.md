@@ -35,9 +35,9 @@ Name the saved model pretrained/examplecnn.pth and save all other output to the 
 In addition, append all generated output filenames with "\_example" so that the resulting outputs are
 
 - pretrained/examplecnn.pth
-- myoutput/training_results_miarn_example.txt
-- myoutput/training_results_miarn_example.png
-- myoutput/testing_results_miarn_example.txt
+- myoutput/training_results_cnn_example.txt
+- myoutput/training_results_cnn_example.png
+- myoutput/testing_results_cnn_example.txt
 
 ```
 python main.py cnn train --save_model pretrained/examplecnn.pth --num_epochs 30 --batch_size 512 --outdir myoutput --suffix example
