@@ -3,8 +3,8 @@ import os
 import time
 from models.cnn import CNN, CNNLayered
 from models.lstm import LSTM, LSTMAtt
-from models.siarn import SIARN
-from models.miarn import MIARN
+from models.SIARN import SIARN
+from models.MIARN import MIARN
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
