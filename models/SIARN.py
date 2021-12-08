@@ -16,7 +16,9 @@ class SIARN(nn.Module):
         self.word_embed = nn.Embedding(vocab_size, embed_dim)
         self.lstm = nn.LSTM(input_size=embed_dim, hidden_size=hidden_dim, batch_first=True)
         #predictions are either sarcasm or not, so two labels
-        self.outlayer = nn.Linear(hidden_dim+embed_dim, 1)
+        self.projlayer = nn.Linear(hidden_dim+embed_dim, hidden_dim)
+        self.relu = nn.ReLU()
+        self.outlayer = nn.Linear(hidden_dim, 1)
         self.sig = nn.Sigmoid()
 
         self.Wa = nn.Parameter(torch.zeros(2*embed_dim))
@@ -68,8 +70,11 @@ class SIARN(nn.Module):
 
         combined = torch.cat((v,final_hidden.squeeze(0)),1)
 
+        # nonlinear projection layer
+        projlayer = self.projlayer(combined)
+        relu_proj = self.relu(projlayer)
         # output connected layer
-        outlayer = self.outlayer(combined)
+        outlayer = self.outlayer(relu_proj)
         # softmax
         out = self.sig(outlayer)
 

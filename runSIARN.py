@@ -82,7 +82,7 @@ Y_test=np.array(Y_test)
 #create the torch dataloaders
 train_data = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(Y_train))
 test_data = TensorDataset(torch.from_numpy(X_test), torch.from_numpy(Y_test))
-batch_size = 16
+batch_size = 256
 train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size)
 
@@ -98,7 +98,7 @@ optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
 #gradient clipping stuff to prevent exploding gradient
 clip=5
 
-for epoch in range(10):
+for epoch in range(30):
     for inputs, labels in train_loader:
         # zero the grads
         model.zero_grad()
