@@ -140,9 +140,12 @@ def main():
 
         train_losses, accuracies = long_train_model(model, model_name, train_loader, optimizer, criterion, clip)
 
-        valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len)
+        valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu)
 
         best_model = select_model(model_name, embed_size, vocab_size, seq_len, best_model_path)
+
+        if use_gpu:
+            best_model.cuda()
 
         precision, recall, accuracy, fscore = test_model(best_model, test_loader)
         save_testing_results(model_name, precision, recall, accuracy, fscore, outdir, save_suffix=save_suffix)

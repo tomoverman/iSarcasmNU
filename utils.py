@@ -174,13 +174,15 @@ def long_train_model(model, model_name, train_loader, optimizer, loss_function, 
 
     return train_losses, accuracies
 
-def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len):
+def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu):
     base_path = "out/long_train/" + model_name + "/"
     num_epochs=200
     accuracy=np.zeros(len(range(5,num_epochs+1,5)))
     for i,epoch in enumerate(range(5,num_epochs+1,5)):
         model_path=base_path + str(epoch) + ".pth"
         model = select_model(model_name, embed_size, vocab_size, seq_len, model_path)
+        if use_gpu:
+            model.cuda()
         model.eval()
         with torch.no_grad():
             correct = 0
