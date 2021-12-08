@@ -22,16 +22,17 @@ def main():
     parser.add_argument("--data_test_fpath",    type=str,       default="./data/ptacek_data_test.csv",
                         help="path to testing data")
 
-    parser.add_argument("--batch_size",         type=int,       default=512,
-                        help="testing and training batch size")
     parser.add_argument("--num_epochs",         type=int,       default=30,
                         help="number of training epochs")
+    parser.add_argument("--batch_size",         type=int,       default=512,
+                        help="testing and training batch size")
     parser.add_argument("--seq_len",            type=int,       default=40,
                         help="fixed length of input (number of tokens in tweet)")
     parser.add_argument("--min_len",            type=int,       default=5,
                         help="minimum number of tokens in input sequence")
     parser.add_argument("--embedding_size",     type=int,       default=100,
                         help="dimension of the embedding space")
+
     parser.add_argument("--learning_rate",      type=float,     default=0.001,
                         help="learning rate hyperparameter")
     parser.add_argument("--regularization",     type=float,     default=1e-8,
@@ -48,14 +49,15 @@ def main():
                         help="path to directory to save output")
     parser.add_argument("--training_results",   type=str,       default="",
                         help="path to file containing training results")
-    parser.add_argument("--suffix",       type=str,       default="",
+    parser.add_argument("--suffix",             type=str,       default="",
                         help="suffix to append to saved filenames")
-    parser.add_argument("--cuda", type=int, default=0,
-                        help="0 for cpu, 1 for gpu/cuda")
+    
+    parser.add_argument("--cuda",               action="store_true",
+                        help="flag indicating to use GPU if available")
 
     args = parser.parse_args()
 
-    model_name          = args.model
+    model_name          = args.model.lower()
     action              = args.action
     data_train_fpath    = args.data_train_fpath
     data_test_fpath     = args.data_test_fpath
@@ -72,7 +74,7 @@ def main():
     outdir              = args.outdir if args.outdir else f"out/{model_name}"
     train_results_path  = args.training_results
     save_suffix         = "_" + args.suffix if args.suffix else args.suffix
-    cuda            = args.cuda
+    cuda                = args.cuda
 
     # Determine whether to use CUDA based on input arguments and if cuda device is available
     use_gpu = (cuda and torch.cuda.is_available())
@@ -87,6 +89,7 @@ def main():
     model = select_model(model_name, embed_size, vocab_size, seq_len, load_path)
     if use_gpu:
         model.cuda()
+    
     # Specify optimizer and loss function
     optimizer = optim.RMSprop(model.parameters(), lr=learning_rate, weight_decay=reg_l2)
     criterion = nn.BCELoss()
@@ -97,7 +100,8 @@ def main():
     # Actions
     if action == "train":
         
-        print(f"Training model {model_name.upper()} with hyperparameters: \
+        gpu_or_cpu = "GPU" if use_gpu else "CPU"
+        print(f"Training model {model_name.upper()} on {gpu_or_cpu} with hyperparameters: \
                 \n\tnum_epochs:         {num_epochs}\
                 \n\tbatch_size:         {batch_size}\
                 \n\tlearning_rate:      {learning_rate}\

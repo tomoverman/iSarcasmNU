@@ -3,7 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+
 class MIARN(nn.Module):
+    
     def __init__(self, embed_dim, hidden_dim, vocab_size,seq_len):
         super(MIARN, self).__init__()
         #initialize some variables
@@ -26,7 +28,6 @@ class MIARN(nn.Module):
         self.intra_att_2 = nn.Linear(k,1)
 
         self.idxs = torch.cartesian_prod(torch.tensor(range(0, seq_len)), torch.tensor(range(0, seq_len)))
-
 
     def intra_attention(self,embed):
         # VECTORIZE THIS

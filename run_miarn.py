@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from models.SIARN import SIARN
+from models.miarn import MIARN
 import csv
 from preprocessing.preprocessor import Preprocessor
 
@@ -82,7 +82,7 @@ Y_test=np.array(Y_test)
 #create the torch dataloaders
 train_data = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(Y_train))
 test_data = TensorDataset(torch.from_numpy(X_test), torch.from_numpy(Y_test))
-batch_size = 256
+batch_size = 512
 train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
 test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size)
 
@@ -91,7 +91,7 @@ EMBEDDING_DIM = 100
 HIDDEN_DIM = 100
 
 
-model = SIARN(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary),seq_len)
+model = MIARN(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary),seq_len)
 loss_function = nn.BCELoss()
 optimizer = optim.RMSprop(model.parameters(), lr=0.001, weight_decay=10**-8)
 

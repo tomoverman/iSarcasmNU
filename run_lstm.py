@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from models.LSTMSarcasm import LSTMSarcasm
+from models.lstm import LSTM
 import csv
 from preprocessing.preprocessor import Preprocessor
 
@@ -92,7 +92,7 @@ EMBEDDING_DIM = 100
 HIDDEN_DIM = 100
 
 
-model = LSTMSarcasm(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary))
+model = LSTM(EMBEDDING_DIM, HIDDEN_DIM, len(prep.vocabulary))
 if use_cuda and torch.cuda.is_available():
     model.cuda()
 loss_function = nn.BCELoss()
