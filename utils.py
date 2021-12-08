@@ -120,6 +120,84 @@ def train_model(model, num_epochs, train_loader, optimizer, loss_function, clip)
     return train_losses, accuracies
 
 
+def long_train_model(model, model_name, train_loader, optimizer, loss_function, clip):
+    """
+    Train the given model over a number of epochs, using the data in train_loader.
+    Uses the specified optimizer and los function. Clip gives the amount to clip
+    the gradient to avoid exploding gradients.
+    Returns two lists: the training losses and the accuracies at each iteration.
+    """
+
+    base_path = "out/long_train/" + model_name + "/"
+    print("Training model...")
+    time0 = time.time()
+    t0 = time0
+
+    train_losses = []
+    accuracies = []
+
+    model.train()
+    # train for many, many epochs to get a large parameter space
+    num_epochs=200
+    for epoch in range(1, num_epochs + 1):
+        for i, (xs, labels) in enumerate(train_loader):
+            # Perform forward pass
+            outputs = model(xs)
+
+            # Compute loss and perform backprop
+            loss = loss_function(outputs, labels.float())
+            optimizer.zero_grad()
+            loss.backward()
+
+            # Prevent exploding gradient
+            nn.utils.clip_grad_norm_(model.parameters(), clip)
+            optimizer.step()
+
+        # Compute accuracy and save it as well as the training loss
+        pred_labels = convert_output_to_label(outputs)
+        accuracy = get_accuracy(pred_labels, labels)
+        train_losses.append(loss.item())
+        accuracies.append(accuracy)
+        t1 = time.time()
+        time_elapsed = (t1 - t0)
+        t0 = t1
+
+        print(
+            f'\tEpoch [{epoch}/{num_epochs}], Time: {time_elapsed:.2f} sec, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}')
+
+        #save model params every 5 epochs
+        if epoch%5==0:
+            torch.save(model.state_dict(), base_path + str(epoch) + ".pth")
+
+    time_elapsed = time.time() - time0
+    print(f"    Time Elapsed: {time_elapsed:.2f} sec")
+
+    return train_losses, accuracies
+
+def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len):
+    base_path = "out/long_train/" + model_name + "/"
+    num_epochs=200
+    accuracy=np.zeros(len(range(5,num_epochs+1,5)))
+    for i,epoch in enumerate(range(5,num_epochs+1,5)):
+        model_path=base_path + str(epoch) + ".pth"
+        model = select_model(model_name, embed_size, vocab_size, seq_len, model_path)
+        model.eval()
+        with torch.no_grad():
+            correct = 0
+            total = 0
+            for xs, labels in valid_loader:
+                outputs = model(xs)
+                pred_labels = convert_output_to_label(outputs)
+                total += len(labels)
+                correct += (pred_labels == labels).sum().int()
+
+        accuracy[i]=correct/total
+
+    # choose best model based on accuracy
+    best_i = np.argmax(accuracy)
+
+    return accuracy[best_i], base_path + str(best_i*5+5) + ".pth"
+
 def test_model(model, test_loader):
     """
     Test the given model on the test data in test_loader.

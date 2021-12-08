@@ -205,11 +205,14 @@ class Preprocessor:
 		else:
 			return tk_data, kept_idxs
 
-	def get_dataset_train(self,use_gpu):
-		return TokenizedDataset(self.x_train, self.y_train, use_gpu)
+	def get_dataset_train(self,use_gpu,validation):
+		return TokenizedDataset(self.x_train, self.y_train, use_gpu, validation)
+
+	def get_dataset_valid(self,use_gpu):
+		return TokenizedDataset(self.x_train, self.y_train, use_gpu, valid="Valid")
 
 	def get_dataset_test(self,use_gpu):
-		return TokenizedDataset(self.x_test, self.y_test, use_gpu)
+		return TokenizedDataset(self.x_test, self.y_test, use_gpu, valid=False)
 
 
 #####################
@@ -218,7 +221,20 @@ class Preprocessor:
 
 class TokenizedDataset(Dataset):
 
-	def __init__(self, x, y, use_gpu):
+	def __init__(self, x, y, use_gpu, valid):
+		if valid=="Valid":
+			# case when building the validation set, take 12.5% of the training set to use as validation set.
+			spot = int(np.floor(len(x)*.85))
+			x=x[spot:]
+			y=y[spot:]
+		elif valid:
+			# case when building the training set and we need to leave some of the dataset for validation
+			spot = int(np.floor(len(x) * .85))
+			x = x[0:spot]
+			y = y[0:spot]
+		else:
+			# case for testing set and if we are building training set without validation set, no change to x,y
+			pass
 		if not use_gpu:
 			self.x = np.array(x)
 			self.y = np.array(y)

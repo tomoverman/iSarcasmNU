@@ -3,7 +3,7 @@ import argparse
 import os
 from preprocessing.preprocessor import Preprocessor
 from utils import select_model, train_model, test_model, plot_loss_and_accuracy, \
-                  save_training_results, save_testing_results
+                  save_training_results, save_testing_results, long_train_model, evaluate_long_train
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -15,7 +15,9 @@ def main():
     parser = argparse.ArgumentParser(description='iSarcasmNU')
 
     parser.add_argument("model",    type=str, choices=["cnn", "3cnn", "lstm", "lstm_att", "siarn", "miarn"])
-    parser.add_argument("action",   type=str, choices=["train", "test", "plot_training_results"])
+    # long_train means to run for a large number of epochs, saving the model parameters peiordically, then select the best
+    # model parameters using a validation set
+    parser.add_argument("action",   type=str, choices=["train", "test", "plot_training_results", "long_train"])
 
     parser.add_argument("--data_train_fpath",   type=str,       default="./data/ptacek_data_train.csv",
                         help="path to training data")
@@ -108,7 +110,8 @@ def main():
                 \n\tL2_regularization:  {reg_l2}")
 
         # Load data, then train and test the model
-        train_loader = DataLoader(dataset=prep.get_dataset_train(use_gpu), batch_size=batch_size, shuffle=True)
+        validation = False
+        train_loader = DataLoader(dataset=prep.get_dataset_train(use_gpu,validation), batch_size=batch_size, shuffle=True)
         test_loader  = DataLoader(dataset=prep.get_dataset_test(use_gpu),  batch_size=batch_size, shuffle=False)
         train_losses, accuracies = train_model(model, num_epochs, train_loader, optimizer, criterion, clip)
         precision, recall, accuracy, fscore = test_model(model, test_loader)
@@ -122,11 +125,33 @@ def main():
         plot_loss_and_accuracy(model_name, train_losses, accuracies, outdir, save_suffix=save_suffix)
         save_testing_results(model_name, precision, recall, accuracy, fscore, outdir, save_suffix=save_suffix)
 
+    elif action == "long_train":
+        gpu_or_cpu = "GPU" if use_gpu else "CPU"
+        print(f"Training model {model_name.upper()} on {gpu_or_cpu} with hyperparameters: \
+                        \n\tbatch_size:         {batch_size}\
+                        \n\tlearning_rate:      {learning_rate}\
+                        \n\tL2_regularization:  {reg_l2}")
+
+        # Load data, then train and test the model
+        validation = True
+        train_loader = DataLoader(dataset=prep.get_dataset_train(use_gpu, validation), batch_size=batch_size, shuffle=True)
+        valid_loader = DataLoader(dataset=prep.get_dataset_valid(use_gpu), batch_size=batch_size, shuffle=True)
+        test_loader = DataLoader(dataset=prep.get_dataset_test(use_gpu), batch_size=batch_size, shuffle=False)
+
+        train_losses, accuracies = long_train_model(model, model_name, train_loader, optimizer, criterion, clip)
+
+        valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len)
+
+        best_model = select_model(model_name, embed_size, vocab_size, seq_len, best_model_path)
+
+        precision, recall, accuracy, fscore = test_model(best_model, test_loader)
+        save_testing_results(model_name, precision, recall, accuracy, fscore, outdir, save_suffix=save_suffix)
+
     elif action == "test":
         print(f"Testing model {model_name.upper()} loaded from {load_path}")
         
         # Load test data and test the model
-        test_loader  = DataLoader(dataset=prep.get_dataset_test(),  batch_size=batch_size, shuffle=False)
+        test_loader  = DataLoader(dataset=prep.get_dataset_test(use_gpu),  batch_size=batch_size, shuffle=False)
         precision, recall, accuracy, fscore = test_model(model, test_loader)
 
     elif action == "plot_training_results":
