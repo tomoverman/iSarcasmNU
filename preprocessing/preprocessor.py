@@ -223,7 +223,7 @@ class TokenizedDataset(Dataset):
 
 	def __init__(self, x, y, use_gpu, valid):
 		if valid=="Valid":
-			# case when building the validation set, take 12.5% of the training set to use as validation set.
+			# case when building the validation set, take 15% of the training set to use as validation set.
 			spot = int(np.floor(len(x)*.85))
 			x=x[spot:]
 			y=y[spot:]
