@@ -10,9 +10,16 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-SEQ_LEN = 40
-MIN_LEN = 5
-EMBED_SIZE = 100
+
+#################
+##  Constants  ##
+#################
+
+SEQ_LEN = 40        # Fixed tokenozed tweet length
+MIN_LEN = 5         # Required minimum length of tokenized tweet
+EMBED_SIZE = 100    # Dimension of the embedding space
+CLIP = 5            # Clipping amount to prevent exploding gradient
+
 
 def main():
 
@@ -38,9 +45,6 @@ def main():
     parser.add_argument("--regularization",     type=float,     default=1e-8,
                         help="L2 regularization hyperparameter")
 
-    parser.add_argument("--clip",               type=int,       default=5,
-                        help="clipping amount to prevent exploding gradients")
-
     parser.add_argument("--save_model",         type=str,       default="",
                         help="file path to save model parameters to)")
     parser.add_argument("--load_model",         type=str,       default="",
@@ -59,26 +63,26 @@ def main():
 
     args = parser.parse_args()
 
-    model_name          = args.model.lower()
-    action              = args.action
-    data_train_fpath    = args.data_train_fpath
-    data_test_fpath     = args.data_test_fpath
-    batch_size          = args.batch_size
-    num_epochs          = args.num_epochs 
-    learning_rate       = args.learning_rate 
-    reg_l2              = args.regularization 
-    clip                = args.clip
-    save_model_path     = args.save_model
-    load_path           = args.load_model
-    outdir              = args.outdir if args.outdir else f"out/{model_name}"
-    save_suffix         = "_" + args.suffix if args.suffix else args.suffix
-    plot_logloss        = args.plot_logloss
-    cuda                = args.cuda
-    storage_step        = args.storage_step
+    model_name       = args.model.lower()
+    action           = args.action
+    data_train_fpath = args.data_train_fpath
+    data_test_fpath  = args.data_test_fpath
+    batch_size       = args.batch_size
+    num_epochs       = args.num_epochs 
+    learning_rate    = args.learning_rate 
+    reg_l2           = args.regularization 
+    save_model_path  = args.save_model
+    load_path        = args.load_model
+    outdir           = args.outdir if args.outdir else f"out/{model_name}"
+    save_suffix      = "_" + args.suffix if args.suffix else args.suffix
+    plot_logloss     = args.plot_logloss
+    cuda             = args.cuda
+    storage_step     = args.storage_step
 
-    seq_len             = SEQ_LEN 
-    min_len             = MIN_LEN
-    embed_size          = EMBED_SIZE
+    seq_len    = SEQ_LEN 
+    min_len    = MIN_LEN
+    embed_size = EMBED_SIZE
+    clip       = CLIP
 
     # Determine whether to use CUDA based on input arguments and if cuda device is available
     use_gpu = (cuda and torch.cuda.is_available())
