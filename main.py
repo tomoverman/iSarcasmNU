@@ -4,7 +4,7 @@ import os
 from preprocessing.preprocessor import Preprocessor
 from utils import select_model, train_model, test_model, save_training_results, \
                   save_testing_results, long_train_model, evaluate_long_train
-from plot import plot_loss_and_accuracy
+from plotting_utils import plot_loss_and_accuracy
 import torch
 import torch.nn as nn
 import torch.optim as optim
