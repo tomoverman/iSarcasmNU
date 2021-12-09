@@ -93,7 +93,7 @@ class CNNLayered(nn.Module):
 			out_sizes.append(out_size_pool)
 
 			self.layers.append(nn.Sequential(
-				nn.Conv1d(self.seq_len, count, size, self.padding),
+				nn.Conv1d(self.seq_len, count, size),
 				nn.ReLU(),
 				nn.MaxPool1d(kernel_size=size, stride=stride))
 			)
