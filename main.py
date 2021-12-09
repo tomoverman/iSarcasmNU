@@ -56,6 +56,8 @@ def main():
     
     parser.add_argument("--cuda",               action="store_true",
                         help="flag indicating to use GPU if available")
+    parser.add_argument("--storage_step", type=int, default=1,
+                        help="step size of epochs in which model parameters are saved during long train")
 
     args = parser.parse_args()
 
@@ -77,6 +79,7 @@ def main():
     train_results_path  = args.training_results
     save_suffix         = "_" + args.suffix if args.suffix else args.suffix
     cuda                = args.cuda
+    storage_step        = args.storage_step
 
     # Determine whether to use CUDA based on input arguments and if cuda device is available
     use_gpu = (cuda and torch.cuda.is_available())
@@ -138,9 +141,9 @@ def main():
         valid_loader = DataLoader(dataset=prep.get_dataset_valid(use_gpu), batch_size=batch_size, shuffle=True)
         test_loader = DataLoader(dataset=prep.get_dataset_test(use_gpu), batch_size=batch_size, shuffle=False)
 
-        train_losses, accuracies = long_train_model(model, model_name, train_loader, optimizer, criterion, clip)
+        train_losses, accuracies = long_train_model(model, model_name, train_loader, optimizer, criterion, clip, num_epochs, storage_step)
 
-        valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu)
+        valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu,num_epochs, storage_step)
 
         best_model = select_model(model_name, embed_size, vocab_size, seq_len, best_model_path)
 

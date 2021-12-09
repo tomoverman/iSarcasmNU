@@ -120,7 +120,7 @@ def train_model(model, num_epochs, train_loader, optimizer, loss_function, clip)
     return train_losses, accuracies
 
 
-def long_train_model(model, model_name, train_loader, optimizer, loss_function, clip):
+def long_train_model(model, model_name, train_loader, optimizer, loss_function, clip, num_epochs, storage_step):
     """
     Train the given model over a number of epochs, using the data in train_loader.
     Uses the specified optimizer and los function. Clip gives the amount to clip
@@ -138,7 +138,6 @@ def long_train_model(model, model_name, train_loader, optimizer, loss_function, 
 
     model.train()
     # train for many, many epochs to get a large parameter space
-    num_epochs=200
     for epoch in range(1, num_epochs + 1):
         for i, (xs, labels) in enumerate(train_loader):
             # Perform forward pass
@@ -166,7 +165,7 @@ def long_train_model(model, model_name, train_loader, optimizer, loss_function, 
             f'\tEpoch [{epoch}/{num_epochs}], Time: {time_elapsed:.2f} sec, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}')
 
         #save model params every 5 epochs
-        if epoch%5==0:
+        if epoch%storage_step==0:
             torch.save(model.state_dict(), base_path + str(epoch) + ".pth")
 
     time_elapsed = time.time() - time0
@@ -174,11 +173,10 @@ def long_train_model(model, model_name, train_loader, optimizer, loss_function, 
 
     return train_losses, accuracies
 
-def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu):
+def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu, num_epochs, storage_step):
     base_path = "out/long_train/" + model_name + "/"
-    num_epochs=200
-    accuracy=np.zeros(len(range(5,num_epochs+1,5)))
-    for i,epoch in enumerate(range(5,num_epochs+1,5)):
+    accuracy=np.zeros(len(range(storage_step,num_epochs+1,storage_step)))
+    for i,epoch in enumerate(range(storage_step,num_epochs+1,storage_step)):
         model_path=base_path + str(epoch) + ".pth"
         model = select_model(model_name, embed_size, vocab_size, seq_len, model_path)
         if use_gpu:
