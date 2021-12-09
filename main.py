@@ -143,6 +143,9 @@ def main():
 
         train_losses, accuracies = long_train_model(model, model_name, train_loader, optimizer, criterion, clip, num_epochs, storage_step)
 
+        save_training_results(model_name, train_losses, accuracies, outdir, save_suffix=save_suffix)
+        plot_loss_and_accuracy(model_name, train_losses, accuracies, outdir, save_suffix=save_suffix)
+
         valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu,num_epochs, storage_step)
 
         best_model = select_model(model_name, embed_size, vocab_size, seq_len, best_model_path)
