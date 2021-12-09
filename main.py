@@ -2,8 +2,9 @@
 import argparse
 import os
 from preprocessing.preprocessor import Preprocessor
-from utils import select_model, train_model, test_model, plot_loss_and_accuracy, \
-                  save_training_results, save_testing_results, long_train_model, evaluate_long_train
+from utils import select_model, train_model, test_model, save_training_results, \
+                  save_testing_results, long_train_model, evaluate_long_train
+from plot import plot_loss_and_accuracy
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -49,11 +50,9 @@ def main():
                         help="path to saved model file")
     parser.add_argument("--outdir",             type=str,       default="",
                         help="path to directory to save output")
-    parser.add_argument("--training_results",   type=str,       default="",
-                        help="path to file containing training results")
     parser.add_argument("--suffix",             type=str,       default="",
                         help="suffix to append to saved filenames")
-    parser.add_argument("--logloss",            action="store_true",
+    parser.add_argument("--plot_logloss",            action="store_true",
                         help="if given, plot log of the training loss")
     
     parser.add_argument("--cuda",               action="store_true",
@@ -78,9 +77,8 @@ def main():
     save_model_path     = args.save_model
     load_path           = args.load_model
     outdir              = args.outdir if args.outdir else f"out/{model_name}"
-    train_results_path  = args.training_results
     save_suffix         = "_" + args.suffix if args.suffix else args.suffix
-    use_logplot         = args.logloss
+    plot_logloss        = args.plot_logloss
     cuda                = args.cuda
     storage_step        = args.storage_step
 
@@ -129,7 +127,7 @@ def main():
         # Save and plot results
         save_training_results(model_name, train_losses, accuracies, outdir, save_suffix=save_suffix)
         plot_loss_and_accuracy(model_name, train_losses, accuracies, outdir, 
-                               save_suffix=save_suffix, logloss=use_logplot)
+                               save_suffix=save_suffix, plot_logloss=plot_logloss)
         save_testing_results(model_name, precision, recall, accuracy, fscore, outdir, save_suffix=save_suffix)
 
     elif action == "long_train":
@@ -149,7 +147,7 @@ def main():
 
         save_training_results(model_name, train_losses, accuracies, outdir, save_suffix=save_suffix)
         plot_loss_and_accuracy(model_name, train_losses, accuracies, outdir, 
-                               save_suffix=save_suffix, logloss=use_logplot)
+                               save_suffix=save_suffix, plot_logloss=plot_logloss)
 
         valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu,num_epochs, storage_step)
 
@@ -167,10 +165,6 @@ def main():
         # Load test data and test the model
         test_loader  = DataLoader(dataset=prep.get_dataset_test(use_gpu),  batch_size=batch_size, shuffle=False)
         precision, recall, accuracy, fscore = test_model(model, test_loader)
-
-    elif action == "plot_training_results":
-        plot_loss_and_accuracy(model_name, None, None, outdir, data_path=train_results_path,
-                               save_suffix=save_suffix, logloss=use_logplot)
 
 
 if __name__ == "__main__":
