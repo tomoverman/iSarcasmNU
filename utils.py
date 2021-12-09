@@ -196,25 +196,27 @@ def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_le
             for xs, labels in valid_loader:
                 outputs = model(xs)
                 pred_labels = convert_output_to_label(outputs)
-                total += len(labels)
-                correct += (pred_labels == labels).sum().int()
-                false_negatives += get_false_negatives(pred_labels, labels)
-                false_positives += get_false_positives(pred_labels, labels)
-                true_positives  += get_true_positives(pred_labels, labels)
+                if valid_criterion == "accuracy":
+                    total += len(labels)
+                    correct += (pred_labels == labels).sum().int()
+                elif valid_criterion == "fscore":
+                    false_negatives += get_false_negatives(pred_labels, labels)
+                    false_positives += get_false_positives(pred_labels, labels)
+                    true_positives  += get_true_positives(pred_labels, labels)
 
-        precision = true_positives / (true_positives + false_positives)
-        recall    = true_positives / (true_positives + false_negatives)
-        accuracy  = correct / total
-        fscore    = 2. * (precision * recall) / (precision + recall)
+        if valid_criterion == "accuracy":
+            accuracy  = correct / total
+            accuracies[i] = correct / total
+        elif valid_criterion == "fscore":
+            precision = true_positives / (true_positives + false_positives)
+            recall    = true_positives / (true_positives + false_negatives)
+            fscore    = 2. * (precision * recall) / (precision + recall)
+            fscores[i]    = fscore
         
-        accuracies[i] = correct / total
-        fscores[i]    = fscore
-
     # Choose best model based on specified criterion    
     if valid_criterion == "accuracy":
         best_i = np.argmax(accuracies)
         return accuracies[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
-
     elif valid_criterion == "fscore":
         best_i = np.argmax(fscores)
         return fscores[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
