@@ -104,16 +104,17 @@ class CNNLayered(nn.Module):
 		self.act = nn.Sigmoid()
 
 	def forward(self, x):
+		print("test")
 		out = self.embedding(x)
 
 		layer_outs = []
 		for layer in self.layers:
-			layer_outs.append(layer(out).cpu())
+			layer_outs.append(layer(out))
 
-		out = torch.cat(layer_outs, 2).cuda()
+		out = torch.cat(layer_outs, 2)
 		out = out.reshape(out.size(0), -1)
 		out = self.fc(out)
 		out = self.act(out)
-		return out.squeeze()
+		return out.squeeze().cuda()
 
 
