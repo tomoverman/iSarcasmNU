@@ -93,7 +93,7 @@ class CNNLayered(nn.Module):
 			out_sizes.append(out_size_pool)
 
 			self.layers.append(nn.Sequential(
-				nn.Conv1d(self.seq_len, count, size),
+				nn.Conv1d(self.seq_len, count, size, self.padding),
 				nn.ReLU(),
 				nn.MaxPool1d(kernel_size=size, stride=stride))
 			)
@@ -108,9 +108,9 @@ class CNNLayered(nn.Module):
 
 		layer_outs = []
 		for layer in self.layers:
-			layer_outs.append(layer(out))
+			layer_outs.append(layer(out).cpu())
 
-		out = torch.cat(layer_outs, 2)
+		out = torch.cat(layer_outs, 2).cuda()
 		out = out.reshape(out.size(0), -1)
 		out = self.fc(out)
 		out = self.act(out)
