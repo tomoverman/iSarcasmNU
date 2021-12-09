@@ -10,6 +10,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
+SEQ_LEN = 40
+MIN_LEN = 5
+EMBED_SIZE = 100
 
 def main():
 
@@ -29,12 +32,6 @@ def main():
                         help="number of training epochs")
     parser.add_argument("--batch_size",         type=int,       default=512,
                         help="testing and training batch size")
-    parser.add_argument("--seq_len",            type=int,       default=40,
-                        help="fixed length of input (number of tokens in tweet)")
-    parser.add_argument("--min_len",            type=int,       default=5,
-                        help="minimum number of tokens in input sequence")
-    parser.add_argument("--embedding_size",     type=int,       default=100,
-                        help="dimension of the embedding space")
 
     parser.add_argument("--learning_rate",      type=float,     default=0.001,
                         help="learning rate hyperparameter")
@@ -68,9 +65,6 @@ def main():
     data_test_fpath     = args.data_test_fpath
     batch_size          = args.batch_size
     num_epochs          = args.num_epochs 
-    seq_len             = args.seq_len 
-    min_len             = args.min_len 
-    embed_size          = args.embedding_size 
     learning_rate       = args.learning_rate 
     reg_l2              = args.regularization 
     clip                = args.clip
@@ -81,6 +75,10 @@ def main():
     plot_logloss        = args.plot_logloss
     cuda                = args.cuda
     storage_step        = args.storage_step
+
+    seq_len             = SEQ_LEN 
+    min_len             = MIN_LEN
+    embed_size          = EMBED_SIZE
 
     # Determine whether to use CUDA based on input arguments and if cuda device is available
     use_gpu = (cuda and torch.cuda.is_available())
