@@ -240,7 +240,8 @@ def test_model(model, test_loader):
     return precision, recall, accuracy, fscore
 
 
-def plot_loss_and_accuracy(model_name, losses, accuracies, outdir, data_path="", save_suffix=""):
+def plot_loss_and_accuracy(model_name, losses, accuracies, outdir,
+                           data_path="", save_suffix="", logloss=False):
     """
     Plots the results of training a model. Given lists LOSSES and ACCURACIES, 
     or a path to a file containing this data. Saves the figure in the directory
@@ -254,7 +255,11 @@ def plot_loss_and_accuracy(model_name, losses, accuracies, outdir, data_path="",
     fig, [ax1, ax2] = plt.subplots(2, 1)
     xs = range(len(losses))
     
-    ax1.plot(xs, losses)
+    if logloss:
+        ax1.semilogy(xs, losses)
+    else:
+        ax1.plot(xs, losses)
+        
     ax1.set_xlabel("epoch")
     ax1.set_ylabel("loss")
     ax1.set_title(f"{model_name.upper()} Training Loss")
