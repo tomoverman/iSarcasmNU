@@ -85,7 +85,7 @@ class CNNLayered(nn.Module):
 		self.embedding = nn.Embedding(self.vocab_size, self.embed_size, padding_idx=0)
 
 		# Convolution, Activation, Maxpooling layers
-		self.layers = []
+		self.layers = nn.ModuleList()
 		out_sizes = []
 		for size, count, stride in zip(self.filter_sizes, self.filter_counts, self.strides):
 			out_size_conv = get_output_size(self.embed_size, self.padding, self.dilation, size, stride)
