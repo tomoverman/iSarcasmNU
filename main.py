@@ -53,13 +53,14 @@ def main():
                         help="path to directory to save output")
     parser.add_argument("--suffix",             type=str,       default="",
                         help="suffix to append to saved filenames")
-    parser.add_argument("--plot_logloss",            action="store_true",
+    parser.add_argument("--plot_logloss",       action="store_true",
                         help="if given, plot log of the training loss")
     
     parser.add_argument("--cuda",               action="store_true",
                         help="flag indicating to use GPU if available")
-    parser.add_argument("--storage_step", type=int, default=1,
+    parser.add_argument("--storage_step",       type=int, default=1,
                         help="step size of epochs in which model parameters are saved during long train")
+    parser.add_argument("--validation_criterion", type=str, choices=["accuracy", "fscore"], default="accuracy")
 
     args = parser.parse_args()
 
@@ -78,6 +79,7 @@ def main():
     plot_logloss     = args.plot_logloss
     cuda             = args.cuda
     storage_step     = args.storage_step
+    valid_criterion  = args.validation_criterion
 
     seq_len    = SEQ_LEN 
     min_len    = MIN_LEN
@@ -151,7 +153,8 @@ def main():
         plot_loss_and_accuracy(model_name, train_losses, accuracies, outdir, 
                                save_suffix=save_suffix, plot_logloss=plot_logloss)
 
-        valid_acc, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu,num_epochs, storage_step)
+        valid_opt_crit, best_model_path = evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, 
+                                                         seq_len, use_gpu,num_epochs, storage_step, valid_criterion)
 
         best_model = select_model(model_name, embed_size, vocab_size, seq_len, best_model_path)
 

@@ -122,7 +122,7 @@ def train_model(model, num_epochs, train_loader, optimizer, loss_function, clip)
 def long_train_model(model, model_name, train_loader, optimizer, loss_function, clip, num_epochs, storage_step):
     """
     Train the given model over a number of epochs, using the data in train_loader.
-    Uses the specified optimizer and los function. Clip gives the amount to clip
+    Uses the specified optimizer and loss function. Clip gives the amount to clip
     the gradient to avoid exploding gradients.
     Returns two lists: the training losses and the accuracies at each iteration.
     """
@@ -172,11 +172,17 @@ def long_train_model(model, model_name, train_loader, optimizer, loss_function, 
 
     return train_losses, accuracies
 
-def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu, num_epochs, storage_step):
+
+def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_len, use_gpu, 
+                        num_epochs, storage_step, valid_criterion):
+    
     base_path = "out/long_train/" + model_name + "/"
-    accuracy=np.zeros(len(range(storage_step,num_epochs+1,storage_step)))
-    for i,epoch in enumerate(range(storage_step,num_epochs+1,storage_step)):
-        model_path=base_path + str(epoch) + ".pth"
+
+    accuracies = np.zeros(len(range(storage_step,num_epochs+1, storage_step)))
+    fscores    = np.zeros(len(range(storage_step,num_epochs+1, storage_step)))
+
+    for i, epoch in enumerate(range(storage_step,num_epochs+1, storage_step)):
+        model_path = base_path + str(epoch) + ".pth"
         model = select_model(model_name, embed_size, vocab_size, seq_len, model_path)
         if use_gpu:
             model.cuda()
@@ -184,18 +190,35 @@ def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_le
         with torch.no_grad():
             correct = 0
             total = 0
+            false_positives = 0
+            false_negatives = 0
+            true_positives  = 0
             for xs, labels in valid_loader:
                 outputs = model(xs)
                 pred_labels = convert_output_to_label(outputs)
                 total += len(labels)
                 correct += (pred_labels == labels).sum().int()
+                false_negatives += get_false_negatives(pred_labels, labels)
+                false_positives += get_false_positives(pred_labels, labels)
+                true_positives  += get_true_positives(pred_labels, labels)
 
-        accuracy[i]=correct/total
+        precision = true_positives / (true_positives + false_positives)
+        recall    = true_positives / (true_positives + false_negatives)
+        accuracy  = correct / total
+        fscore    = 2. * (precision * recall) / (precision + recall)
+        
+        accuracies[i] = correct / total
+        fscores[i]    = fscore
 
-    # choose best model based on accuracy
-    best_i = np.argmax(accuracy)
+    # Choose best model based on specified criterion    
+    if valid_criterion == "accuracy":
+        best_i = np.argmax(accuracies)
+        return accuracies[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
 
-    return accuracy[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
+    elif valid_criterion == "fscore":
+        best_i = np.argmax(fscores)
+        return fscores[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
+
 
 def test_model(model, test_loader):
     """
