@@ -104,7 +104,6 @@ class CNNLayered(nn.Module):
 		self.act = nn.Sigmoid()
 
 	def forward(self, x):
-		print("test")
 		out = self.embedding(x)
 
 		layer_outs = []
@@ -115,6 +114,6 @@ class CNNLayered(nn.Module):
 		out = out.reshape(out.size(0), -1)
 		out = self.fc(out)
 		out = self.act(out)
-		return out.squeeze().cuda()
+		return out.squeeze()
 
 
