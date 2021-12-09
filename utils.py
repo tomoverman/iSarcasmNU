@@ -196,7 +196,7 @@ def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_le
     # choose best model based on accuracy
     best_i = np.argmax(accuracy)
 
-    return accuracy[best_i], base_path + str(best_i*5+5) + ".pth"
+    return accuracy[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
 
 def test_model(model, test_loader):
     """
