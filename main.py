@@ -18,7 +18,7 @@ def main():
     parser.add_argument("model",    type=str, choices=["cnn", "3cnn", "lstm", "lstm_att", "siarn", "miarn"])
     # long_train means to run for a large number of epochs, saving the model parameters peiordically, then select the best
     # model parameters using a validation set
-    parser.add_argument("action",   type=str, choices=["train", "test", "plot_training_results", "long_train"])
+    parser.add_argument("action",   type=str, choices=["train", "test", "long_train"])
 
     parser.add_argument("--data_train_fpath",   type=str,       default="./data/ptacek_data_train.csv",
                         help="path to training data")
