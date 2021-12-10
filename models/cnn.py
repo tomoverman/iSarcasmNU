@@ -6,6 +6,9 @@ import torch.nn as nn
 
 
 def get_output_size(in_size, padding, dilation, kernel_size, stride):
+	"""
+	Formula found at https://towardsdatascience.com/text-classification-with-cnns-in-pytorch-1113df31e79f
+	"""
 	out_size = math.floor(((in_size + 2*padding - dilation*(kernel_size - 1) - 1) / stride) + 1)
 	return out_size
 
