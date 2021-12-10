@@ -41,67 +41,79 @@ Common Options:
   - ```--load_model```: path to the pretrained model file that will be loaded, when testing
   - ```--save_model```: path to which the model will be saved after training (will not save if not given)
   - ```--outdir```: path to the directory to which output training data will be saved (defaults to out/<model>)
+  - ```--suffix```: a suffix to append to any output filenames
   - ```--storage_step```: for long training, step size of epochs in which model parameters are saved (default is 1)
 
-Please see the source code for additional options.
+Please see the source code for additional options. For the purpose of outputting results, note that any models saved using the ```--save_model``` option require that the prefix directories exist, while the prefix for output specified with the ```--outdir``` option will be created at runtime if it does not already exist. 
 
 ## Examples
 
-### Train an LSTM on the GPU
+### Train an LSTM
   
-  Train the LSTM over 30 epochs with a batch size of 256, and save the resulting model.
+  Train the LSTM over 30 epochs with a batch size of 256, and save the resulting model. Use a GPU if available.
 
 ```
-python main.py lstm train --num_epochs 30 --batch_size 256 --cuda --save_model pretrained/lstm_30_256.pth
+python main.py lstm train --num_epochs 30 --batch_size 256 --cuda --save_model pretrained/lstm_example.pth --suffix example
 ```
 
 This will generate the following output:
 
-  - ```pretrained/lstm_30_256.pth```: file containing the saved model parameters.
-  - ```out/lstm/training_results_lstm.txt```: a text file containing training losses and accuracies at the end of each epoch.
-  - ```out/lstm/training_results_lstm.png```: a plot of the training loss and accuracy over the course of training.
-  - ```out/lstm/testing_results_lstm.txt```: a text file containing the testing precision, recall, accuracy, and F-score.
+  - ```pretrained/lstm_example.pth```: file containing the saved model parameters.
+  - ```out/lstm/training_results_lstm_example.txt```: a text file containing training losses and accuracies at the end of each epoch.
+  - ```out/lstm/training_results_lstm_example.png```: a plot of the training loss and accuracy over the course of training.
+  - ```out/lstm/testing_results_lstm_example.txt```: a text file containing the testing precision, recall, accuracy, and F-score.
 
-### Train a CNN on the CPU 
+### Train a CNN
   
-  Train the CNN over 30 epochs with a batch size of 512, specifying the output directory and a suffix for any output files.
+  Train the CNN over 30 epochs with a batch size of 512, specifying the output directory and a suffix for any output files. Use a GPU if available.
 
 ```
-python main.py cnn train --num_epochs 30 --batch_size 512 --outdir myoutput \
-                         --save_model pretrained/example_cnn.pth --suffix example
+python main.py cnn train --num_epochs 30 --batch_size 512 --cuda --outdir out/example \
+                         --save_model pretrained/cnn_example.pth --suffix example
 ```
 
 This will generate the following output:
   
-  - ```pretrained/example_cnn.pth```
-  - ```myoutput/training_results_cnn_example.txt```
-  - ```myoutput/training_results_cnn_example.png```
-  - ```myoutput/testing_results_cnn_example.txt```
+  - ```pretrained/cnn_example.pth```
+  - ```out/example/training_results_cnn_example.txt```
+  - ```out/example/training_results_cnn_example.png```
+  - ```out/example/testing_results_cnn_example.txt```
 
 ### Test a pretrained CNN
   
   Load a pretrained model from the specified path and test it on the default testing data.
 
 ```
-python main.py cnn test --load_model pretrained/example_cnn.pth
+python main.py cnn test --load_model pretrained/cnn_example.pth
 ```
 
 Results are output to the terminal.
   
-### Train an LSTM with Attention over a long duration
+### Train an LSTM with Attention, with periodic saves
 
-  Train the model over 100 epochs, saving the model state every 5 epochs, and select as a final model the one with the highest F-score, 
-  using a subset of the training data as a validation set.
+  Train the model over 100 epochs, saving the model state every 5 epochs, and select as a final model the one with the highest F-score, using a subset of the training data as a validation set.
   
 ```
 python main.py lstm_att long_train --num_epochs 100 --storage_step 5 --save_model pretrained/lstm_att_best.pth \
-                                   --suffix long --outdir myoutput --validation_criterion fscore --cuda
+                                   --suffix long --outdir out/example --validation_criterion fscore --cuda
 ```
 
 This will generate the following output:
 
 - ```out/long_train/lstm_att/{5,10,15,...,100}.pth```: 20 model files saved during the course of training.
 - ```pretrained/lstm_att_best.pth```: the best model, based on the validation F-score.
-- ```myoutput/training_results_lstm_att_long.txt```: training results of the best model.
-- ```myoutput/training_results_lstm_att_long.png```: a plot of the training results for the best model.
-- ```myoutput/testing_results_lstm_att_long.txt```: testing results for the best model.
+- ```out/example/training_results_lstm_att_long.txt```: training results of the best model.
+- ```out/example/training_results_lstm_att_long.png```: a plot of the training results for the best model.
+- ```out/example/testing_results_lstm_att_long.txt```: testing results for the best model.
+
+## Pretrained Models
+
+The directory ```pretrained/``` contains a collection of pretrained models in the form of <model_name>.pth files. These can be loaded and tested as shown in the previous examples.
+
+## Data and Preprocessing
+
+The data intended for use in this project can be aquired using the Twitter API, and may require an access token. The scripts in the preprocessing module handle the download and cleaning of data. Please refer to the source code for additional details regarding preprocessing steps.
+
+## Plotting and Visualization
+
+Another script, plot.py, is intended to handle plotting and visualization of results. Post hoc plotting can be handled in this way, reading results from output training data files. Please see the source code for usage information.
