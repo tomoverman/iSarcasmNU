@@ -46,20 +46,23 @@ def main():
                         help="L2 regularization hyperparameter")
 
     parser.add_argument("--save_model",         type=str,       default="",
-                        help="file path to save model parameters to)")
+                        help="file path to save model parameters to")
     parser.add_argument("--load_model",         type=str,       default="",
                         help="path to saved model file")
     parser.add_argument("--outdir",             type=str,       default="",
                         help="path to directory to save output")
     parser.add_argument("--suffix",             type=str,       default="",
                         help="suffix to append to saved filenames")
+
     parser.add_argument("--plot_logloss",       action="store_true",
                         help="if given, plot log of the training loss")
     
     parser.add_argument("--cuda",               action="store_true",
                         help="flag indicating to use GPU if available")
+
     parser.add_argument("--storage_step",       type=int, default=1,
                         help="step size of epochs in which model parameters are saved during long train")
+
     parser.add_argument("--validation_criterion", type=str, choices=["accuracy", "fscore"], default="accuracy")
 
     args = parser.parse_args()
@@ -90,6 +93,7 @@ def main():
     use_gpu = (cuda and torch.cuda.is_available())
     
     # Preprocess data
+    print("Preprocessing data...")
     prep = Preprocessor(seq_len=seq_len, min_len=min_len)
     prep.load_data(data_train_fpath, data_test_fpath)
     prep.initialize()
@@ -163,6 +167,11 @@ def main():
 
         precision, recall, accuracy, fscore = test_model(best_model, test_loader)
         save_testing_results(model_name, precision, recall, accuracy, fscore, outdir, save_suffix=save_suffix)
+
+        # Save model if desired
+        if save_model_path:
+            print(f"Optimal model saved to {save_model_path}.")
+            torch.save(best_model.state_dict(), save_model_path)
 
     elif action == "test":
         print(f"Testing model {model_name.upper()} loaded from {load_path}")

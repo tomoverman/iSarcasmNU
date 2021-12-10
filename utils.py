@@ -135,6 +135,7 @@ def long_train_model(model, model_name, train_loader, optimizer, loss_function, 
     """
 
     base_path = "out/long_train/" + model_name + "/"
+    os.makedirs(base_path, exist_ok=True)
     print("Training model...")
     time0 = time.time()
     t0 = time0
