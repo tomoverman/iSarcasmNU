@@ -82,6 +82,10 @@ def train_model(model, num_epochs, train_loader, optimizer, loss_function, clip)
     Uses the specified optimizer and los function. Clip gives the amount to clip
     the gradient to avoid exploding gradients.
     Returns two lists: the training losses and the accuracies at each iteration.
+
+    # General loop structure seen at the following: 
+       https://adventuresinmachinelearning.com/convolutional-neural-networks-tutorial-in-pytorch/
+
     """
 
     print("Training model...")
