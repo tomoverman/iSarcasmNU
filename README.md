@@ -116,4 +116,14 @@ The data intended for use in this project can be aquired using the Twitter API, 
 
 ## Plotting and Visualization
 
-Another script, plot.py, is intended to handle plotting and visualization of results. Post hoc plotting can be handled in this way, reading results from output training data files. Please see the source code for usage information.
+plot.py is intended to handle visualization of results. Post hoc plotting can be handled in this way, reading results from output training data files. Please see the source code for usage information.
+
+## Authors and Acknowledgment
+  Authors: Addison Howe and Tom Overman
+  
+  Citations:
+  - Silviu Oprea and Walid Magdy. isarcasm: A dataset of intended sarcasm. http://arxiv.org/abs/1911.03123
+  - Yi Tay, Luu Anh Tuan, Siu Cheung Hui, and Jian Su. Reasoning with sarcasm by reading in-between. http://arxiv.org/abs/1805.02856
+  
+
+  
