@@ -9,7 +9,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='iSarcasmNU Visualizations')
 
-    parser.add_argument("model",    type=str, choices=["cnn", "3cnn", "lstm", "lstm_att", "siarn", "miarn"])
+    parser.add_argument("model",    type=str, choices=["cnn", "3cnn", "lstm", "lstm_att", "siarn", "miarn", "siarn3"])
 
     parser.add_argument("action",   type=str, choices=["plot_training_results"])
 
