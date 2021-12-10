@@ -5,6 +5,7 @@ from models.cnn import CNN, CNNLayered
 from models.lstm import LSTM, LSTMAtt
 from models.SIARN import SIARN
 from models.MIARN import MIARN
+from models.SIARN3 import SIARN3
 import numpy as np
 import torch
 import torch.nn as nn
@@ -16,7 +17,8 @@ MODELS = {
     "lstm": LSTM,
     "lstm_att": LSTMAtt,
     "siarn": SIARN,
-    "miarn": MIARN
+    "miarn": MIARN,
+    "siarn3": SIARN3
 }
 
 
@@ -55,6 +57,11 @@ def select_model(model_name, embed_size, vocab_size, seq_len, load_path=""):
 
     elif model_name == 'miarn':
         # Parameters for MIARN
+        hidden_dim = 100
+        params = [embed_size, hidden_dim, vocab_size, seq_len]
+
+    elif model_name == "siarn3":
+        # Parameters for SIARN
         hidden_dim = 100
         params = [embed_size, hidden_dim, vocab_size, seq_len]
 

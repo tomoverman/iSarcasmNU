@@ -25,7 +25,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='iSarcasmNU')
 
-    parser.add_argument("model",    type=str, choices=["cnn", "3cnn", "lstm", "lstm_att", "siarn", "miarn"])
+    parser.add_argument("model",    type=str, choices=["cnn", "3cnn", "lstm", "lstm_att", "siarn", "miarn", "siarn3"])
     # long_train means to run for a large number of epochs, saving the model parameters peiordically, then select the best
     # model parameters using a validation set
     parser.add_argument("action",   type=str, choices=["train", "test", "long_train"])
