@@ -70,7 +70,7 @@ def select_model(model_name, embed_size, vocab_size, seq_len, load_path=""):
     
     # If specified, load a pretrained model
     if load_path:
-        model.load_state_dict(torch.load(load_path))
+        model.load_state_dict(torch.load(load_path, map_location=torch.device('cpu')))
         model.eval()
 
     return model
