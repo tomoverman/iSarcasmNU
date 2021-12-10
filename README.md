@@ -108,7 +108,9 @@ This will generate the following output:
 
 ## Pretrained Models
 
-The directory ```pretrained/``` contains a collection of pretrained models in the form of <model_name>.pth files. These can be loaded and tested as shown in the previous examples.
+The directory ```pretrained/``` contains a collection of pretrained models in the form of .pth files. These can be loaded and tested as follows:
+  
+  - ```python main.py <model> test pretrained/<model>.pth```
 
 ## Data and Preprocessing
 
