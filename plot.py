@@ -13,17 +13,14 @@ def main():
 
     parser.add_argument("action",   type=str, choices=["plot_training_results"])
 
-    parser.add_argument("--load_model",         type=str,       default="",
-                        help="path to saved model file")
+    parser.add_argument("--training_results",   type=str,       default="",
+                        help="path to file containing training results")
 
     parser.add_argument("--outdir",             type=str,       default="",
                         help="path to directory to save output")
 
     parser.add_argument("--suffix",             type=str,       default="",
                         help="suffix to append to saved filenames")
-
-    parser.add_argument("--training_results",   type=str,       default="",
-                        help="path to file containing training results")
 
     parser.add_argument("--plot_logloss",            action="store_true",
                         help="if given, plot log of the training loss")
@@ -32,7 +29,6 @@ def main():
 
     model_name          = args.model.lower()
     action              = args.action
-    load_path           = args.load_model
     outdir              = args.outdir if args.outdir else f"out/{model_name}"
     save_suffix         = "_" + args.suffix if args.suffix else args.suffix
     train_results_path  = args.training_results
