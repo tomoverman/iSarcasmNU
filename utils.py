@@ -67,13 +67,11 @@ def select_model(model_name, embed_size, vocab_size, seq_len, load_path=""):
 
     # Construct the model
     model = MODELS[model_name](*params)
-    print(f"Constructed model {model_name.upper()}.")
     
     # If specified, load a pretrained model
     if load_path:
         model.load_state_dict(torch.load(load_path))
         model.eval()
-        print(f"Model loaded from {load_path}")
 
     return model
 

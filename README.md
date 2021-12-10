@@ -94,8 +94,8 @@ Results are output to the terminal.
   using a subset of the training data as a validation set.
   
 ```
-python main.py lstm_att long_train --num_epochs 100 --storage_step 5 --save_model pretrained/lstm_att_best.pth 
-                                   --suffix long --outdir myoutput --validation_criterion fscore
+python main.py lstm_att long_train --num_epochs 100 --storage_step 5 --save_model pretrained/lstm_att_best.pth \
+                                   --suffix long --outdir myoutput --validation_criterion fscore --cuda
 ```
 
 This will generate the following output:

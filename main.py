@@ -101,6 +101,7 @@ def main():
 
     # Select model
     model = select_model(model_name, embed_size, vocab_size, seq_len, load_path)
+    print(f"Constructed model {model_name.upper()}.")
     if use_gpu:
         model.cuda()
     
