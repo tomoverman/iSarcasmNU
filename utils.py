@@ -218,7 +218,7 @@ def evaluate_long_train(model_name, valid_loader, embed_size, vocab_size, seq_le
         best_i = np.argmax(accuracies)
         return accuracies[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
     elif valid_criterion == "fscore":
-        best_i = np.argmax(fscores)
+        best_i = np.nanargmax(fscores)
         return fscores[best_i], base_path + str(best_i*storage_step+storage_step) + ".pth"
 
 
