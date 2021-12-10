@@ -131,7 +131,7 @@ def main():
         # Save model if desired
         if save_model_path:
             torch.save(model.state_dict(), save_model_path)
-            print(f"Optimal model saved to {save_model_path}.")
+            print(f"Model saved to {save_model_path}.")
         
         # Save and plot results
         save_training_results(model_name, train_losses, accuracies, outdir, save_suffix=save_suffix)
