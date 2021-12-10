@@ -1,7 +1,0 @@
-text,sarcasm_label
-"THIS THIS SHOULD SHOULD TEST TEST capitals capitals",0
-"RAREWORD NOTRARE notrare notrare notRARE",1
-"Nothing is kept from this string",0
-"https://testdelete.org and nothing more",1
-"@ADDISON should be replaced with atuser",0
-"@TOM should be replaced with atuser",0
